@@ -1,4 +1,4 @@
-const CACHE_NAME = "pwa-template-v2";
+const CACHE_NAME = "pwa-template-v3";
 const BASE_URL = self.registration.scope;
 
 const urlsToCache = [
