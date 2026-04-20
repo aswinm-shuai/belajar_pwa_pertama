@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Farmly",
-  "short_name": "FRMLY",
-  "description": "Membangun platform digital yang menghubungkan peternak lokal dengan pembeli secara langsung untuk meningkatkan efisiensi distribusi hasil ternak.",
+  "name": "Subflow",
+  "short_name": "SBFLW",
+  "description": "Aplikasi Manajemen Customer Langganan Aplikasi Premium",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
