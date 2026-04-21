@@ -1,7 +1,7 @@
 {
   "id": "./",
   "name": "Subflow",
-  "short_name": "SBFLW",
+  "short_name": "Subflow",
   "description": "Aplikasi Manajemen Customer Langganan Aplikasi Premium",
   "start_url": "./index.html",
   "scope": "./",
