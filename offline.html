@@ -1,80 +1,54 @@
 <!DOCTYPE html>
 <html lang="id" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#4F46E5" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4F46E5">
   <title>Subflow – Offline</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #f0f0ff;
+      background: #eef2ff;
       font-family: 'Segoe UI', system-ui, sans-serif;
       color: #1e1b4b;
       padding: 2rem;
       text-align: center;
     }
-
     .icon {
-      width: 80px;
-      height: 80px;
+      width: 80px; height: 80px;
       background: #4F46E5;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       margin-bottom: 1.5rem;
       box-shadow: 0 8px 32px rgba(79,70,229,0.3);
     }
-
     .icon svg { width: 40px; height: 40px; fill: white; }
-
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      color: #312e81;
-    }
-
-    p {
-      font-size: 1rem;
-      color: #6366f1;
-      max-width: 320px;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-
+    h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.75rem; color: #312e81; }
+    p { font-size: 1rem; color: #6366f1; max-width: 300px; line-height: 1.6; margin-bottom: 2rem; }
     button {
-      background: #4F46E5;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 0.85rem 2rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      background: #4F46E5; color: white; border: none;
+      border-radius: 12px; padding: 0.85rem 2.5rem;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
       box-shadow: 0 4px 16px rgba(79,70,229,0.35);
+      transition: background 0.2s, transform 0.1s;
     }
-
     button:hover { background: #4338ca; transform: translateY(-1px); }
     button:active { transform: translateY(0); }
+    .version { margin-top: 2rem; font-size: 0.75rem; color: #a5b4fc; }
   </style>
 </head>
 <body>
   <div class="icon">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4 2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
-    </svg>
+    <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4 2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
   </div>
-  <h1>Tidak Ada Koneksi</h1>
-  <p>Kamu sedang offline. Periksa koneksi internet kamu dan coba lagi.</p>
-  <button onclick="window.location.reload()">Coba Lagi</button>
+  <h1>Kamu Sedang Offline</h1>
+  <p>Periksa koneksi internet kamu, lalu tekan tombol di bawah untuk mencoba kembali.</p>
+  <button onclick="location.reload()">Coba Lagi</button>
+  <p class="version">Subflow PWA</p>
 </body>
 </html>
