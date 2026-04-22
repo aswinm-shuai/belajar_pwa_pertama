@@ -12,14 +12,65 @@
   "orientation": "portrait-primary",
   "lang": "id",
   "dir": "ltr",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "business", "finance"],
   "handle_links": "preferred",
+
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://subflow-web-8070c.web.app/belajar_pwa_pertama/manifest.json",
+      "id": "com.subflow.app"
+    }
+  ],
+
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+
   "launch_handler": {
     "client_mode": "focus-existing"
   },
+
   "edge_side_panel": {
     "preferred_width": 400
   },
+
+  "scope_extensions": [
+    {
+      "origin": "https://subflow-web-8070c.web.app"
+    }
+  ],
+
+  "widgets": [
+    {
+      "name": "Subflow Widget",
+      "description": "Ringkasan langganan aktif kamu",
+      "tag": "subflow-summary",
+      "template": "subflow-widget",
+      "ms_ac_template": "/belajar_pwa_pertama/widgets/widget-template.json",
+      "data": "/belajar_pwa_pertama/widgets/widget-data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/belajar_pwa_pertama/icons/screenshot dashbord.png",
+          "sizes": "1080x1920",
+          "label": "Widget Dashboard Subflow"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 3600
+    }
+  ],
+
+  "note_taking": {
+    "new_note_url": "/belajar_pwa_pertama/index.html#add-customer"
+  },
+
   "icons": [
     {
       "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
@@ -46,6 +97,7 @@
       "purpose": "maskable"
     }
   ],
+
   "screenshots": [
     {
       "src": "/belajar_pwa_pertama/icons/screensot master (1).png",
@@ -62,6 +114,7 @@
       "label": "Dashboard Subflow"
     }
   ],
+
   "shortcuts": [
     {
       "name": "Buka Beranda",
@@ -90,6 +143,7 @@
       ]
     }
   ],
+
   "share_target": {
     "action": "/belajar_pwa_pertama/share-target.html",
     "method": "GET",
@@ -99,6 +153,7 @@
       "url": "url"
     }
   },
+
   "file_handlers": [
     {
       "action": "/belajar_pwa_pertama/index.html",
@@ -108,6 +163,7 @@
       }
     }
   ],
+
   "protocol_handlers": [
     {
       "protocol": "web+subflow",
