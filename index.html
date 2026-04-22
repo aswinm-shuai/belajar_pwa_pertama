@@ -572,48 +572,93 @@ if ('serviceWorker' in navigator) {
 <div id="modalContainer"></div>
 
 <script src="app.js"></script>
-<!-- Taruh sebelum </body> di index.html -->
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-        console.log('[SW] Terdaftar:', reg.scope);
+(async function initPWA() {
+  if (!('serviceWorker' in navigator)) return;
 
-        // Daftarkan Periodic Background Sync
-        if ('periodicSync' in reg) {
-          try {
-            const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
-            if (status.state === 'granted') {
-              await reg.periodicSync.register('update-subflow-data', {
-                minInterval: 24 * 60 * 60 * 1000, // 1 hari
-              });
-            }
-          } catch (e) {
-            console.warn('[SW] Periodic sync tidak didukung:', e);
-          }
+  try {
+    // ── Daftarkan SW ──────────────────────────────────────────
+    const reg = await navigator.serviceWorker.register(
+      '/belajar_pwa_pertama/sw.js',
+      { scope: '/belajar_pwa_pertama/' }
+    );
+    console.log('[SW] Terdaftar, scope:', reg.scope);
+
+    // Update SW jika ada versi baru
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker?.addEventListener('statechange', () => {
+        if (newWorker.statechange === 'installed' && navigator.serviceWorker.controller) {
+          newWorker.postMessage({ type: 'SKIP_WAITING' });
         }
-
-        // Daftarkan Background Sync saat offline (contoh penggunaan)
-        window.addToSyncQueue = async (url, method, body) => {
-          if ('sync' in reg) {
-            const id = Date.now().toString();
-            const cache = await caches.open('subflow-sync-queue');
-            await cache.put(
-              `/sync-queue/${id}`,
-              new Response(JSON.stringify({ id, url, method, body }), {
-                headers: { 'Content-Type': 'application/json' }
-              })
-            );
-            await reg.sync.register('sync-pending-data');
-          }
-        };
-
-      } catch (err) {
-        console.error('[SW] Registrasi gagal:', err);
-      }
+      });
     });
+
+    // ── Push Notification Permission ──────────────────────────
+    if ('Notification' in window && 'PushManager' in window) {
+      // Minta izin notifikasi saat user sudah login (tidak langsung saat buka)
+      window.requestPushPermission = async function () {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            console.log('[Push] Izin diberikan');
+            // Tampilkan notifikasi test agar PWABuilder mendeteksi
+            reg.showNotification('Subflow Aktif! 🎉', {
+              body:  'Push notification berhasil diaktifkan.',
+              icon:  '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
+              badge: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
+              tag:   'subflow-welcome',
+            });
+          }
+        } catch (e) {
+          console.warn('[Push] Gagal minta izin:', e);
+        }
+      };
+    }
+
+    // ── Background Sync ───────────────────────────────────────
+    window.addToSyncQueue = async function (url, method, body) {
+      if (!('sync' in reg)) {
+        console.warn('[Sync] Background sync tidak didukung browser ini');
+        return;
+      }
+      try {
+        const id    = Date.now().toString();
+        const queue = await caches.open('subflow-sync-queue');
+        await queue.put(
+          `/sync-queue/${id}`,
+          new Response(JSON.stringify({ id, url, method, body }), {
+            headers: { 'Content-Type': 'application/json' }
+          })
+        );
+        await reg.sync.register('sync-pending-data');
+        console.log('[Sync] Ditambahkan ke queue:', id);
+      } catch (e) {
+        console.warn('[Sync] Gagal register sync:', e);
+      }
+    };
+
+    // ── Periodic Background Sync ──────────────────────────────
+    if ('periodicSync' in reg) {
+      try {
+        const status = await navigator.permissions.query({
+          name: 'periodic-background-sync'
+        });
+        if (status.state === 'granted') {
+          await reg.periodicSync.register('update-subflow-data', {
+            minInterval: 24 * 60 * 60 * 1000 // 1 hari
+          });
+          console.log('[PeriodicSync] Terdaftar');
+        }
+      } catch (e) {
+        console.warn('[PeriodicSync] Tidak didukung atau ditolak:', e);
+      }
+    }
+
+  } catch (err) {
+    console.error('[SW] Registrasi gagal:', err);
   }
+})();
 </script>
 </body>
 </html>
