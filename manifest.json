@@ -100,18 +100,18 @@
 
   "screenshots": [
     {
-      "src": "/belajar_pwa_pertama/icons/screensot master (1).png",
-      "sizes": "1080x1920",
+      "src": "icons/Screenshot 2026-04-22 131007.png",
+      "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Halaman Utama Subflow"
+      "form_factor": "wide",
+      "label": "Dashboard Subflow Desktop"
     },
     {
       "src": "/belajar_pwa_pertama/icons/screenshot dashbord.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Dashboard Subflow"
+      "label": "Dashboard Subflow Mobile"
     }
   ],
 
