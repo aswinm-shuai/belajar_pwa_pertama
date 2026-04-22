@@ -667,48 +667,6 @@ if ('serviceWorker' in navigator) {
   }
 })();
 </script>
-<script>
-document.getElementById('photoInput')
-  .addEventListener('change', handlePhotoUpload);
 
-window.handlePhotoUpload = function(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    showToast('File harus berupa gambar!', 'error');
-    return;
-  }
-
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('Ukuran foto maksimal 2MB', 'error');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const base64 = e.target.result;
-    const user = auth.currentUser;
-
-    if (user) {
-      DB.set('photo_' + user.uid, base64);
-    }
-
-    applyProfilePhoto(base64);
-    showToast('Foto profil berhasil diperbarui! 📸');
-  };
-
-  reader.readAsDataURL(file);
-};
-
-function applyProfilePhoto(src) {
-  const avatar = document.getElementById('profileAvatarBig');
-  avatar.style.backgroundImage = `url(${src})`;
-  avatar.style.backgroundSize = 'cover';
-  avatar.style.backgroundPosition = 'center';
-  avatar.textContent = '';
-}
-</script>
 </body>
 </html>
