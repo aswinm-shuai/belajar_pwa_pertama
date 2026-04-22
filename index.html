@@ -444,22 +444,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- PROFIL -->
-      <div class="page-section" id="page-profil">
-        <div class="profil-avatar-wrap">
-  <label for="photoInput" style="cursor:pointer; display:inline-block;">
-    <div id="profileAvatarBig" class="profil-avatar">A</div>
-    <div class="profil-avatar-edit">
-      <i class="bi bi-camera-fill"></i>
-    </div>
-  </label>
-</div>
-
-<input 
-  type="file" 
-  id="photoInput" 
-  accept="image/*" 
-  capture="environment"
-  style="display:none;"
+     <div class="page-section" id="page-profil"> <div class="profil-hero"> <div class="profil-avatar-wrap" onclick="document.getElementById('photoInput').click()"> <div id="profileAvatarBig" class="profil-avatar">A</div> <div class="profil-avatar-edit"><i class="bi bi-camera-fill"></i></div> </div> <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)"> <div id="profileNameDisplay" class="profil-name">–</div> <div id="profileEmailDisplay" class="profil-email">–</div> </div>
 >
 
         <div class="card-box" style="margin-top:1.25rem;">
