@@ -4,7 +4,7 @@
 // ================================================================
 
 const CACHE_VERSION = "pwa-template-v2";
-const OFFLINE_URL   = "/belajar_pwa_pertama/offline.html";
+const OFFLINE_URL   = "offline.html";
 
 const PRECACHE_ASSETS = [
   "/belajar_pwa_pertama/",
