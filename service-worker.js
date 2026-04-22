@@ -3,7 +3,7 @@
 // Letakkan di: /belajar_pwa_pertama/sw.js
 // ================================================================
 
-const CACHE_VERSION = "subflow-v4";
+const CACHE_VERSION = "pwa-template-v2";
 const OFFLINE_URL   = "/belajar_pwa_pertama/offline.html";
 
 const PRECACHE_ASSETS = [
