@@ -445,15 +445,22 @@ if ('serviceWorker' in navigator) {
 
       <!-- PROFIL -->
       <div class="page-section" id="page-profil">
-        <div class="profil-hero">
-          <div class="profil-avatar-wrap" onclick="document.getElementById('photoInput').click()">
-            <div id="profileAvatarBig" class="profil-avatar">A</div>
-            <div class="profil-avatar-edit"><i class="bi bi-camera-fill"></i></div>
-          </div>
-          <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
-          <div id="profileNameDisplay" class="profil-name">–</div>
-          <div id="profileEmailDisplay" class="profil-email">–</div>
-        </div>
+        <div class="profil-avatar-wrap">
+  <label for="photoInput" style="cursor:pointer; display:inline-block;">
+    <div id="profileAvatarBig" class="profil-avatar">A</div>
+    <div class="profil-avatar-edit">
+      <i class="bi bi-camera-fill"></i>
+    </div>
+  </label>
+</div>
+
+<input 
+  type="file" 
+  id="photoInput" 
+  accept="image/*" 
+  capture="environment"
+  style="display:none;"
+>
 
         <div class="card-box" style="margin-top:1.25rem;">
           <div class="field-group">
@@ -659,6 +666,49 @@ if ('serviceWorker' in navigator) {
     console.error('[SW] Registrasi gagal:', err);
   }
 })();
+</script>
+<script>
+document.getElementById('photoInput')
+  .addEventListener('change', handlePhotoUpload);
+
+window.handlePhotoUpload = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('File harus berupa gambar!', 'error');
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Ukuran foto maksimal 2MB', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    const user = auth.currentUser;
+
+    if (user) {
+      DB.set('photo_' + user.uid, base64);
+    }
+
+    applyProfilePhoto(base64);
+    showToast('Foto profil berhasil diperbarui! 📸');
+  };
+
+  reader.readAsDataURL(file);
+};
+
+function applyProfilePhoto(src) {
+  const avatar = document.getElementById('profileAvatarBig');
+  avatar.style.backgroundImage = `url(${src})`;
+  avatar.style.backgroundSize = 'cover';
+  avatar.style.backgroundPosition = 'center';
+  avatar.textContent = '';
+}
 </script>
 </body>
 </html>
