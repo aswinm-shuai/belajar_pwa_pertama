@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subflow – Share</title>
+  <script>
+    // Ambil data yang di-share, redirect ke app utama
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const title  = params.get('title') || '';
+      const text   = params.get('text')  || '';
+      const url    = params.get('url')   || '';
+
+      // Simpan ke sessionStorage lalu redirect
+      sessionStorage.setItem('sharedData', JSON.stringify({ title, text, url }));
+      window.location.replace('/belajar_pwa_pertama/index.html');
+    });
+  </script>
+</head>
+<body>
+  <p style="font-family:system-ui;text-align:center;padding:2rem;">Memproses share...</p>
+</body>
+</html>
