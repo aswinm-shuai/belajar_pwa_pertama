@@ -12,7 +12,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/belajar_pwa_pertama/manifest.json">
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/belajar_pwa_pertama/service-worker.js');
+}
+</script>
 
 <!-- Firebase SDK v10 modular (ESM via CDN) -->
 <script type="module">
@@ -177,11 +183,7 @@
 </script>
 </head>
 <body>
-    <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js');
-}
-</script>
+
 
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
@@ -570,5 +572,48 @@ if ('serviceWorker' in navigator) {
 <div id="modalContainer"></div>
 
 <script src="app.js"></script>
+<!-- Taruh sebelum </body> di index.html -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        console.log('[SW] Terdaftar:', reg.scope);
+
+        // Daftarkan Periodic Background Sync
+        if ('periodicSync' in reg) {
+          try {
+            const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+            if (status.state === 'granted') {
+              await reg.periodicSync.register('update-subflow-data', {
+                minInterval: 24 * 60 * 60 * 1000, // 1 hari
+              });
+            }
+          } catch (e) {
+            console.warn('[SW] Periodic sync tidak didukung:', e);
+          }
+        }
+
+        // Daftarkan Background Sync saat offline (contoh penggunaan)
+        window.addToSyncQueue = async (url, method, body) => {
+          if ('sync' in reg) {
+            const id = Date.now().toString();
+            const cache = await caches.open('subflow-sync-queue');
+            await cache.put(
+              `/sync-queue/${id}`,
+              new Response(JSON.stringify({ id, url, method, body }), {
+                headers: { 'Content-Type': 'application/json' }
+              })
+            );
+            await reg.sync.register('sync-pending-data');
+          }
+        };
+
+      } catch (err) {
+        console.error('[SW] Registrasi gagal:', err);
+      }
+    });
+  }
+</script>
 </body>
 </html>
