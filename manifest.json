@@ -1,54 +1,117 @@
 {
-  "id": "./",
+  "id": "/belajar_pwa_pertama/",
   "name": "Subflow",
   "short_name": "Subflow",
   "description": "Aplikasi Manajemen Customer Langganan Aplikasi Premium",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/belajar_pwa_pertama/index.html",
+  "scope": "/belajar_pwa_pertama/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#4F46E5",
   "theme_color": "#4F46E5",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "lang": "id",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "icons": [
     {
-      "src": "icons/logo subflow 192x192.png",
+      "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "icons/logo subflow 512x512.png",
+      "src": "/belajar_pwa_pertama/icons/logo subflow 512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/belajar_pwa_pertama/icons/logo subflow 512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "icons/screensot master (1).png",
+      "src": "/belajar_pwa_pertama/icons/screensot master (1).png",
       "sizes": "1080x1920",
-      "type": "image/png"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Halaman Utama Subflow"
     },
     {
-      "src": "icons/screenshot dashbord.png",
+      "src": "/belajar_pwa_pertama/icons/screenshot dashbord.png",
       "sizes": "1080x1920",
-      "type": "image/png"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard Subflow"
     }
   ],
   "shortcuts": [
     {
       "name": "Buka Beranda",
       "short_name": "Home",
-      "url": "./index.html",
+      "description": "Kembali ke halaman utama Subflow",
+      "url": "/belajar_pwa_pertama/index.html",
       "icons": [
         {
-          "src": "icons/logo subflow 192x192.png",
-          "sizes": "192x192"
+          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tambah Transaksi",
+      "short_name": "Transaksi",
+      "description": "Tambah transaksi baru",
+      "url": "/belajar_pwa_pertama/index.html#transaksi",
+      "icons": [
+        {
+          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
   ],
-  "categories": [
-    "productivity",
-    "utilities"
+  "share_target": {
+    "action": "/belajar_pwa_pertama/share-target.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/belajar_pwa_pertama/index.html",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"]
+      }
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+subflow",
+      "url": "/belajar_pwa_pertama/index.html?url=%s"
+    }
   ]
 }
