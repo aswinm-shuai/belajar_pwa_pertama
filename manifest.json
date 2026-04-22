@@ -24,14 +24,14 @@
   ],
   "screenshots": [
     {
-      "src": "icons/screenshot1.png",
+      "src": "icons/screenshot dashbord.jpeg",
       "sizes": "1080x1920",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "icons/screenshot2.png",
+      "src": "icons/screensot master.jpeg",
       "sizes": "1080x1920",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ],
   "shortcuts": [
