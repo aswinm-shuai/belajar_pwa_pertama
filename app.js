@@ -222,18 +222,39 @@ function closeMasterMenu() {
   document.getElementById('masterMenu').style.display = 'none';
 }
 
-// ─── DARK MODE ───
-function toggleDark() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+// ─── THEME MODE ───
+const THEMES = ['light', 'dark', 'system'];
+
+function applyThemeUI(theme) {
   const icons = ['darkIcon', 'darkIconMobile', 'darkIconProfil'];
   const label = document.getElementById('darkModeLabel');
+  
   icons.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.className = isDark ? 'bi bi-moon' : 'bi bi-sun';
+    if (el) {
+      if (theme === 'light') el.className = 'bi bi-sun';
+      else if (theme === 'dark') el.className = 'bi bi-moon';
+      else el.className = 'bi bi-display';
+    }
   });
-  if (label) label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
-  DB.set('darkMode', !isDark);
+  
+  if (label) {
+    if (theme === 'light') label.textContent = 'Light Mode';
+    else if (theme === 'dark') label.textContent = 'Dark Mode';
+    else label.textContent = 'System Mode';
+  }
+}
+
+function toggleTheme() {
+  let currentTheme = DB.get('appTheme') || 'system';
+  let nextIdx = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
+  let newTheme = THEMES[nextIdx];
+  
+  document.documentElement.classList.remove('light', 'dark', 'system');
+  document.documentElement.classList.add(newTheme);
+  
+  applyThemeUI(newTheme);
+  DB.set('appTheme', newTheme);
 }
 
 // ─── TOAST ───
@@ -1438,16 +1459,9 @@ function applyProfilePhoto(base64) {
 
 // ─── STARTUP ───
 (function init() {
-  const savedDark = DB.get('darkMode');
-  if (savedDark) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    ['darkIcon', 'darkIconMobile', 'darkIconProfil'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.className = 'bi bi-sun';
-    });
-    const label = document.getElementById('darkModeLabel');
-    if (label) label.textContent = 'Light Mode';
-  }
+  const savedTheme = DB.get('appTheme') || 'system';
+  document.documentElement.classList.add(savedTheme);
+  applyThemeUI(savedTheme);
 
   const curMonth = new Date().toISOString().substring(0, 7);
   ['filterBulanTransaksi', 'filterLaporanPeriode', 'filterProfitBulan'].forEach(id => {
