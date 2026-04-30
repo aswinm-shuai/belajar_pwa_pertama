@@ -1350,3 +1350,239 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* ─── HALAMAN LAINNYA ─── */
+.lainnya-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.akun-overview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.akun-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.akun-info {
+  flex: 1;
+}
+
+.akun-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.btn-edit-icon {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.15s;
+}
+.btn-edit-icon:hover { color: var(--accent); }
+
+.akun-email {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+.setting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  border-bottom: 1px dashed var(--border);
+  cursor: pointer;
+  transition: background 0.15s, border-radius 0.15s;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item:hover:not(.no-hover) {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+}
+
+.setting-item.no-hover {
+  cursor: default;
+}
+
+.setting-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: rgba(37,99,235,0.08);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.danger-item .setting-icon {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+}
+.danger-item .setting-title {
+  color: var(--danger);
+}
+
+.setting-text {
+  flex: 1;
+}
+
+.setting-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.setting-sub {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.setting-chevron {
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.security-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(16,185,129,0.08);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  color: var(--success);
+  line-height: 1.5;
+  display: flex;
+  gap: 8px;
+}
+
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-toggle .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border);
+  transition: .4s;
+  border-radius: 34px;
+}
+.switch-toggle .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+.switch-toggle input:checked + .slider {
+  background-color: var(--accent);
+}
+.switch-toggle input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+}
+.accordion-item {
+  border-bottom: 1px solid var(--border);
+}
+.accordion-item:last-child {
+  border-bottom: none;
+}
+.accordion-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.2s;
+}
+.accordion-btn:hover {
+  background: var(--surface2);
+}
+.accordion-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.accordion-title i {
+  color: var(--accent);
+}
+.accordion-icon {
+  transition: transform 0.3s ease;
+  color: var(--text-3);
+}
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: var(--surface);
+  padding: 0 16px;
+}
+.accordion-content p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+  padding-bottom: 16px;
+  margin: 0;
+}
+.accordion-content.active {
+  max-height: 250px;
+}
+.accordion-btn.active .accordion-icon {
+  transform: rotate(180deg);
+}
+
+.text-center { text-align: center; }
