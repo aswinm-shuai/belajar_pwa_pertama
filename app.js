@@ -66,10 +66,10 @@ function seedDemoData() {
   ]);
   const today = new Date();
   DB.saveTransaksis([
-    { id: 1, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),   custId: 1, paketId: 1, harga: 45000, hpp: 30000, profit: 15000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), 31)),                  statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 1, catatan: 'Email: budi@gmail.com | Pass: Budi1234' },
-    { id: 2, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),   custId: 2, paketId: 2, harga: 20000, hpp: 12000, profit: 8000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)), statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 2, catatan: '' },
-    { id: 3, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), custId: 3, paketId: 3, harga: 35000, hpp: 22000, profit: 13000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 44)), statusLangganan: 'expired',  statusBayar: 'lunas',   suppId: 1, catatan: '' },
-    { id: 4, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),   custId: 1, paketId: 4, harga: 25000, hpp: 16000, profit: 9000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)), statusLangganan: 'aktif',   statusBayar: 'pending', suppId: 2, catatan: 'Akun slot 3 dari supplier B' },
+    { id: 1, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),   custId: 1, paketId: 1, harga: 45000, hpp: 30000, profit: 15000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), 31)),                  statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 1, catatan: 'Email: budi@gmail.com | Pass: Budi1234', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 2, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),   custId: 2, paketId: 2, harga: 20000, hpp: 12000, profit: 8000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)), statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 2, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 3, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), custId: 3, paketId: 3, harga: 35000, hpp: 22000, profit: 13000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 44)), statusLangganan: 'expired',  statusBayar: 'lunas',   suppId: 1, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 4, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),   custId: 1, paketId: 4, harga: 25000, hpp: 16000, profit: 9000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)), statusLangganan: 'aktif',   statusBayar: 'pending', suppId: 2, catatan: 'Akun slot 3 dari supplier B', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
   ]);
   DB.saveBiayas([
     { id: 1, nama: 'Iklan IG', nominal: 50000, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)) },
@@ -150,7 +150,6 @@ const PAGE_TITLES = {
   laporan: 'Laporan', biaya: 'Biaya', profit: 'Profit', profil: 'Akun',
 };
 
-// Pages that get highlighted in bottom nav
 const BNAV_MAP = {
   dashboard: 'dashboard',
   transaksi: 'transaksi',
@@ -165,24 +164,19 @@ function showPage(name) {
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
 
-  // Topbar
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[name] || name;
 
-  // Sidebar nav active
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.page === name);
   });
 
-  // Bottom nav active
   document.querySelectorAll('.bnav-item').forEach(b => {
     b.classList.toggle('active', b.dataset.page === name);
   });
 
-  // Scroll to top
   const ca = document.getElementById('contentArea');
   if (ca) ca.scrollTop = 0;
 
-  // Render
   const renders = {
     dashboard: renderDashboard,
     transaksi: renderTransaksi,
@@ -301,6 +295,21 @@ function catatanField(val = '') {
   );
 }
 
+// ─── INVOICE FIELDS ─── (NEW)
+function storeNameField(val = '') {
+  return fieldGroup(
+    'Nama Store <span style="font-size:11px;font-weight:400;color:var(--text-3);">(opsional)</span>',
+    `<input type="text" class="field-input" id="tStoreName" value="${val}" placeholder="cth: WinzStoreID">`
+  );
+}
+
+function customerNotesField(val = '') {
+  return fieldGroup(
+    'Keterangan Invoice <span style="font-size:11px;font-weight:400;color:var(--text-3);">(opsional)</span>',
+    `<textarea class="field-input" id="tCustomerNotes" rows="2" placeholder="cth: Terima kasih telah berbelanja di Toko Kami.">${val}</textarea>`
+  );
+}
+
 // ─── TRANSAKSI CRUD ───
 function createTransaction(data) {
   const trxs = DB.transaksis();
@@ -363,7 +372,12 @@ function openModalTransaksi(renewData = null) {
       ${supps.map(s => `<option value="${s.id}">${s.nama}</option>`).join('')}
     </select>`)}
     ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']]))}
-    ${catatanField('')}`;
+    ${catatanField('')}
+    <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
+      ${storeNameField('')}
+      ${customerNotesField('')}
+    </div>`;
 
   openModal('Tambah Transaksi', html, 'saveTransaksi()', 'Simpan');
   setTimeout(previewProfit, 50);
@@ -395,7 +409,12 @@ function editTransaksi(id) {
       ${supps.map(s => `<option value="${s.id}" ${t.suppId === s.id ? 'selected' : ''}>${s.nama}</option>`).join('')}
     </select>`)}
     ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']], t.statusBayar))}
-    ${catatanField(t.catatan || '')}`;
+    ${catatanField(t.catatan || '')}
+    <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
+      ${storeNameField(t.storeName && t.storeName !== 'Nama Store' ? t.storeName : '')}
+      ${customerNotesField(t.customerNotes && t.customerNotes !== `Terima kasih telah berbelanja di ${t.storeName || 'Nama Store'}.` ? t.customerNotes : '')}
+    </div>`;
 
   openModal('Edit Transaksi #' + id, html, 'saveTransaksi()', 'Update');
   setTimeout(previewProfit, 50);
@@ -420,6 +439,15 @@ function saveTransaksi() {
   const statusBayar = document.getElementById('tStatusBayar').value;
   const catatanEl  = document.getElementById('tCatatan');
   const catatan    = catatanEl ? catatanEl.value.trim() : '';
+
+  // ─── Nama Store & Keterangan Invoice (NEW) ───
+  const storeNameEl     = document.getElementById('tStoreName');
+  const customerNotesEl = document.getElementById('tCustomerNotes');
+  const storeNameRaw    = storeNameEl ? storeNameEl.value.trim() : '';
+  const storeName       = storeNameRaw || 'Nama Store';
+  const customerNotesRaw = customerNotesEl ? customerNotesEl.value.trim() : '';
+  const customerNotes    = customerNotesRaw || `Terima kasih telah berbelanja di ${storeName}.`;
+
   if (!tgl || !custId || !paketId) { showToast('Lengkapi semua field!', 'error'); return; }
   const paket = DB.pakets().find(p => p.id === paketId);
   if (!paket) { showToast('Paket tidak ditemukan', 'error'); return; }
@@ -430,14 +458,20 @@ function saveTransaksi() {
   const expD    = new Date(expired); expD.setHours(0, 0, 0, 0);
   const statusLangganan = today > expD ? 'expired' : 'aktif';
   const suppId  = parseInt(document.getElementById('tSupp').value) || null;
-  const trxData = { tgl, custId, paketId, harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp, mulai, expired, statusLangganan, statusBayar, suppId, catatan };
+  const trxData = {
+    tgl, custId, paketId,
+    harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp,
+    mulai, expired, statusLangganan, statusBayar, suppId, catatan,
+    storeName, customerNotes
+  };
 
   if (_currentEditId !== null) {
     updateTransaction(_currentEditId, trxData);
     showToast('Transaksi diperbarui ✅');
   } else {
-    createTransaction(trxData);
+    const newId = createTransaction(trxData);
     showToast('Transaksi disimpan 🎉');
+    setTimeout(() => exportInvoiceToJPG(newId), 500);
   }
   closeModal();
   renderTransaksi();
@@ -449,6 +483,282 @@ function doRenewal(trxId) {
   if (!t) return;
   openModalTransaksi({ custId: t.custId, paketId: t.paketId });
   showToast('Data customer & paket sudah diisi', 'success');
+}
+
+// ─── INVOICE PREVIEW & PRINT (NEW) ───
+function previewInvoice(id) {
+  const t     = DB.transaksis().find(t => t.id === id);
+  if (!t) return;
+  const custs = DB.customers();
+  const pks   = DB.pakets();
+  const c     = custs.find(c => c.id === t.custId);
+  const p     = pks.find(p => p.id === t.paketId);
+
+  const storeName     = t.storeName     || 'Nama Store';
+  const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
+  const custName      = c ? c.nama : '–';
+  const paketName     = p ? p.nama : '–';
+  const durasi        = p ? p.durasi + ' Hari' : '–';
+
+  const invoiceHtml = `
+    <div style="font-family:'DM Sans',sans-serif;max-width:420px;margin:0 auto;background:var(--surface);border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+      <div style="background:var(--accent);color:#fff;padding:20px 24px 16px;">
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;">${storeName}</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice #${t.id}</div>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="display:grid;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Tanggal</span>
+            <span style="font-size:13px;font-weight:600;">${t.tgl}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Customer</span>
+            <span style="font-size:13px;font-weight:600;">${custName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Aplikasi Premium</span>
+            <span style="font-size:13px;font-weight:600;">${paketName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Durasi</span>
+            <span style="font-size:13px;font-weight:600;">${durasi}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border);">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Periode</span>
+            <span style="font-size:13px;font-weight:600;">${t.mulai} → ${t.expired}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--border);">
+            <span style="font-size:14px;font-weight:700;">Total Harga</span>
+            <span style="font-size:16px;font-weight:800;color:var(--accent);font-family:var(--mono);">${fmtRupiah(t.harga)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+            <span style="font-size:12px;color:var(--text-3);font-weight:500;">Status Bayar</span>
+            <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:${t.statusBayar === 'lunas' ? 'rgba(16,185,129,.15)' : 'rgba(245,158,11,.15)'};color:${t.statusBayar === 'lunas' ? 'var(--success)' : 'var(--warning)'};">${t.statusBayar.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Keterangan</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">${customerNotes}</div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-3);">Powered by <strong>Subflow</strong></div>
+      </div>
+    </div>`;
+
+  const el = document.getElementById('modalContainer');
+  el.innerHTML = `
+    <div class="modal-backdrop" id="modalBg" onclick="closeModalOnBg(event)">
+      <div class="modal-box" style="max-width:460px;">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+          <h5><i class="bi bi-receipt" style="margin-right:6px;"></i>Invoice #${t.id}</h5>
+          <button class="btn-modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="modal-body" id="invoicePreviewBody">${invoiceHtml}</div>
+        <div class="modal-footer" style="gap:8px;">
+          <button class="btn-cancel" onclick="closeModal()">Tutup</button>
+          <button class="btn-save" onclick="printInvoice(${id})" style="background:var(--success);"><i class="bi bi-printer"></i> Cetak</button>
+          <button class="btn-save" onclick="downloadInvoice(${id})"><i class="bi bi-download"></i> Download</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function printInvoice(id) {
+  const t     = DB.transaksis().find(t => t.id === id);
+  if (!t) return;
+  const custs = DB.customers();
+  const pks   = DB.pakets();
+  const c     = custs.find(c => c.id === t.custId);
+  const p     = pks.find(p => p.id === t.paketId);
+  const storeName     = t.storeName     || 'Nama Store';
+  const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
+  const durasi        = p ? p.durasi + ' Hari' : '–';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Invoice #${t.id} — ${storeName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box;}
+      body{font-family:'DM Sans',sans-serif;background:#f8fafc;display:flex;justify-content:center;padding:40px 16px;}
+      .invoice{max-width:400px;width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+      .inv-header{background:#2563eb;color:#fff;padding:24px 28px 20px;}
+      .inv-store{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+      .inv-num{font-size:12px;opacity:.75;margin-top:3px;}
+      .inv-body{padding:24px 28px;}
+      .inv-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #e2e8f0;}
+      .inv-row:last-of-type{border-bottom:none;}
+      .inv-label{font-size:12px;color:#64748b;font-weight:500;}
+      .inv-val{font-size:13px;font-weight:600;color:#1e293b;}
+      .inv-total{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:2px solid #e2e8f0;border-bottom:2px solid #e2e8f0;margin:4px 0;}
+      .inv-total-label{font-size:14px;font-weight:700;color:#1e293b;}
+      .inv-total-val{font-size:18px;font-weight:800;color:#2563eb;font-family:'DM Mono',monospace;}
+      .inv-badge{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;}
+      .badge-lunas{background:#d1fae5;color:#065f46;}
+      .badge-pending{background:#fef3c7;color:#92400e;}
+      .inv-notes{margin-top:16px;padding:14px 16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;}
+      .inv-notes-label{font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+      .inv-notes-text{font-size:13px;color:#334155;line-height:1.55;}
+      .inv-footer{text-align:center;margin-top:18px;font-size:11px;color:#94a3b8;}
+      @media print{body{background:#fff;padding:0;}@page{margin:0;}.invoice{box-shadow:none;border-radius:0;}}
+    </style>
+  </head><body>
+    <div class="invoice">
+      <div class="inv-header">
+        <div class="inv-store">${storeName}</div>
+        <div class="inv-num">Invoice #${t.id}</div>
+      </div>
+      <div class="inv-body">
+        <div class="inv-row"><span class="inv-label">Tanggal</span><span class="inv-val">${t.tgl}</span></div>
+        <div class="inv-row"><span class="inv-label">Customer</span><span class="inv-val">${c ? c.nama : '–'}</span></div>
+        <div class="inv-row"><span class="inv-label">Aplikasi Premium</span><span class="inv-val">${p ? p.nama : '–'}</span></div>
+        <div class="inv-row"><span class="inv-label">Durasi</span><span class="inv-val">${durasi}</span></div>
+        <div class="inv-row"><span class="inv-label">Periode</span><span class="inv-val">${t.mulai} → ${t.expired}</span></div>
+        <div class="inv-total">
+          <span class="inv-total-label">Total Harga</span>
+          <span class="inv-total-val">${fmtRupiah(t.harga)}</span>
+        </div>
+        <div class="inv-row" style="margin-top:4px;"><span class="inv-label">Status Bayar</span><span class="inv-badge ${t.statusBayar === 'lunas' ? 'badge-lunas' : 'badge-pending'}">${t.statusBayar.toUpperCase()}</span></div>
+        <div class="inv-notes">
+          <div class="inv-notes-label">Keterangan</div>
+          <div class="inv-notes-text">${customerNotes}</div>
+        </div>
+        <div class="inv-footer">Powered by <strong>Subflow</strong></div>
+      </div>
+    </div>
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function downloadInvoice(id) {
+  if (typeof html2canvas === 'undefined') {
+    showToast('Library html2canvas tidak ditemukan.', 'error');
+    return;
+  }
+  const t = DB.transaksis().find(t => t.id === id);
+  if (!t) return;
+  const custs = DB.customers();
+  const c     = custs.find(c => c.id === t.custId);
+
+  const storeName = t.storeName || 'Nama Store';
+  const custName  = c ? c.nama : 'Customer';
+  const dateStr   = t.tgl || new Date().toISOString().split('T')[0];
+
+  const targetEl = document.getElementById('invoicePreviewBody');
+  if (!targetEl) return;
+  
+  const invoiceContainer = targetEl.firstElementChild;
+  if (!invoiceContainer) return;
+
+  showToast('Menyiapkan gambar...', 'success');
+  html2canvas(invoiceContainer, {
+    scale: 3,
+    useCORS: true,
+    backgroundColor: '#ffffff'
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Invoice-${storeName}-${custName}-${dateStr}.jpg`.replace(/\s+/g, '-');
+    link.href = canvas.toDataURL('image/jpeg', 1.0);
+    link.click();
+    showToast('Invoice JPG berhasil didownload!');
+  }).catch(err => {
+    console.error('Error generating JPG', err);
+    showToast('Gagal membuat JPG', 'error');
+  });
+}
+
+// ─── AUTO EXPORT JPG (NEW) ───
+function exportInvoiceToJPG(id) {
+  if (typeof html2canvas === 'undefined') {
+    showToast('Library html2canvas tidak ditemukan.', 'error');
+    return;
+  }
+  const t = DB.transaksis().find(t => t.id === id);
+  if (!t) return;
+  const custs = DB.customers();
+  const pks   = DB.pakets();
+  const c     = custs.find(c => c.id === t.custId);
+  const p     = pks.find(p => p.id === t.paketId);
+
+  const storeName     = t.storeName     || 'Nama Store';
+  const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
+  const custName      = c ? c.nama : '–';
+  const paketName     = p ? p.nama : '–';
+  const durasi        = p ? p.durasi + ' Hari' : '–';
+
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '420px';
+  container.style.background = '#ffffff';
+
+  container.innerHTML = `
+    <div id="captureInvoiceTarget" style="font-family:'DM Sans',sans-serif;max-width:420px;margin:0 auto;background:#ffffff;border-radius:0;overflow:hidden;border:none;">
+      <div style="background:#2563eb;color:#fff;padding:20px 24px 16px;">
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;">${storeName}</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice #${t.id}</div>
+      </div>
+      <div style="padding:20px 24px;background:#ffffff;color:#1e293b;">
+        <div style="display:grid;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Tanggal</span>
+            <span style="font-size:13px;font-weight:600;">${t.tgl}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Customer</span>
+            <span style="font-size:13px;font-weight:600;">${custName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Aplikasi Premium</span>
+            <span style="font-size:13px;font-weight:600;">${paketName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Durasi</span>
+            <span style="font-size:13px;font-weight:600;">${durasi}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #e2e8f0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Periode</span>
+            <span style="font-size:13px;font-weight:600;">${t.mulai} → ${t.expired}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid #e2e8f0;">
+            <span style="font-size:14px;font-weight:700;">Total Harga</span>
+            <span style="font-size:16px;font-weight:800;color:#2563eb;font-family:'DM Mono',monospace;">${fmtRupiah(t.harga)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+            <span style="font-size:12px;color:#64748b;font-weight:500;">Status Bayar</span>
+            <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:${t.statusBayar === 'lunas' ? '#d1fae5' : '#fef3c7'};color:${t.statusBayar === 'lunas' ? '#059669' : '#d97706'};">${t.statusBayar.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+          <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Keterangan</div>
+          <div style="font-size:13px;color:#334155;line-height:1.5;">${customerNotes}</div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-size:11px;color:#94a3b8;">Powered by <strong>Subflow</strong></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(container);
+
+  setTimeout(() => {
+    html2canvas(document.getElementById('captureInvoiceTarget'), {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `Invoice-${storeName}-${custName}-${t.tgl}.jpg`.replace(/\s+/g, '-');
+      link.href = canvas.toDataURL('image/jpeg', 1.0);
+      link.click();
+      document.body.removeChild(container);
+      showToast('Invoice JPG berhasil dibuat!');
+    }).catch(err => {
+      console.error('Error generating JPG', err);
+      document.body.removeChild(container);
+    });
+  }, 100);
 }
 
 // ─── DASHBOARD ───
@@ -465,7 +775,6 @@ function renderDashboard() {
   const profitMo   = monthTrx.reduce((a, t) => a + t.profit, 0);
   const omzetMo    = monthTrx.reduce((a, t) => a + t.harga,  0);
 
-  // Stats
   document.getElementById('dashStats').innerHTML = [
     { label: 'Omzet Hari Ini', value: fmtShort(omzetToday), sub: `${todayTrx.length} transaksi`, icon: 'bi-cash-coin', bg: '#dbeafe', col: '#2563eb' },
     { label: 'Omzet Bulan',    value: fmtShort(omzetMo),    sub: `${monthTrx.length} transaksi`, icon: 'bi-graph-up',  bg: '#d1fae5', col: '#065f46' },
@@ -479,7 +788,6 @@ function renderDashboard() {
       <div class="stat-sub">${s.sub}</div>
     </div>`).join('');
 
-  // Sales chart
   const months = [], omzetArr = [], profArr = [];
   const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   for (let i = 5; i >= 0; i--) {
@@ -507,7 +815,6 @@ function renderDashboard() {
     },
   });
 
-  // Package chart
   const pks = DB.pakets(); const pkgData = {};
   monthTrx.forEach(t => { const p = pks.find(pk => pk.id === t.paketId); if (p) pkgData[p.nama] = (pkgData[p.nama] || 0) + 1; });
   if (_packageChart) _packageChart.destroy();
@@ -521,7 +828,6 @@ function renderDashboard() {
     options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: "'DM Sans'", size: 11 }, boxRadius: 4 } } } },
   });
 
-  // Reminders
   const today2 = new Date(); today2.setHours(0, 0, 0, 0);
   const expiring = trxs.filter(t => {
     if (t.statusLangganan !== 'aktif') return false;
@@ -584,6 +890,7 @@ function renderTransaksi() {
     const exp  = new Date(t.expired); exp.setHours(0, 0, 0, 0);
     const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
     const isReminder = t.statusLangganan === 'aktif' && diff >= 0 && diff <= 3;
+    const storeName = t.storeName || 'Nama Store';
     return `
       <div class="item-card ${isReminder ? 'reminder-card' : ''}">
         <div class="item-card-header">
@@ -598,6 +905,7 @@ function renderTransaksi() {
         </div>
         <div class="item-card-body">
           <span class="item-meta"><i class="bi bi-calendar3"></i>${t.mulai} → ${t.expired}</span>
+          <span class="item-meta"><i class="bi bi-shop" style="color:var(--accent);"></i>${storeName}</span>
           ${t.catatan ? `<span class="item-meta"><i class="bi bi-sticky" style="color:var(--warning);"></i>${t.catatan.length > 30 ? t.catatan.substring(0, 30) + '…' : t.catatan}</span>` : ''}
         </div>
         <div class="item-card-footer">
@@ -606,6 +914,7 @@ function renderTransaksi() {
             <span class="badge ${t.statusBayar === 'lunas' ? 'badge-info' : 'badge-warning'}">${t.statusBayar}</span>
           </div>
           <div class="item-actions">
+            <button class="btn-sm" onclick="previewInvoice(${t.id})" title="Invoice"><i class="bi bi-receipt"></i></button>
             <button class="btn-sm" onclick="toggleBayar(${t.id})" title="Toggle Bayar"><i class="bi bi-arrow-left-right"></i></button>
             <button class="btn-sm" onclick="editTransaksi(${t.id})" title="Edit"><i class="bi bi-pencil"></i></button>
             <button class="btn-sm danger" onclick="deleteTransaction(${t.id})" title="Hapus"><i class="bi bi-trash"></i></button>
@@ -660,6 +969,7 @@ function renderLangganan() {
         <div class="item-card-footer">
           <div></div>
           <div class="item-actions">
+            <button class="btn-sm" onclick="previewInvoice(${t.id})"><i class="bi bi-receipt"></i> Invoice</button>
             ${t.statusLangganan === 'aktif' ? `<button class="btn-sm accent" onclick="doRenewal(${t.id})"><i class="bi bi-arrow-repeat"></i> Perpanjang</button>` : ''}
             ${c ? `<a href="https://wa.me/${c.wa}" target="_blank" class="btn-sm success"><i class="bi bi-whatsapp"></i> WA</a>` : ''}
           </div>
@@ -958,7 +1268,10 @@ function renderLaporan() {
         </div>
         <div class="item-card-footer">
           <span class="badge ${t.statusBayar === 'lunas' ? 'badge-info' : 'badge-warning'}">${t.statusBayar}</span>
-          <span class="item-meta">HPP: ${fmtShort(t.hpp)}</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="item-meta">HPP: ${fmtShort(t.hpp)}</span>
+            <button class="btn-sm" onclick="previewInvoice(${t.id})"><i class="bi bi-receipt"></i></button>
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -968,11 +1281,11 @@ function exportLaporan() {
   const trxs  = DB.transaksis();
   const custs = DB.customers();
   const pks   = DB.pakets();
-  let csv = 'Tanggal,Customer,Paket,Harga Jual,HPP,Profit,Status Bayar,Catatan\n';
+  let csv = 'Tanggal,Customer,Paket,Harga Jual,HPP,Profit,Status Bayar,Nama Store,Keterangan,Catatan\n';
   trxs.forEach(t => {
     const c = custs.find(c => c.id === t.custId);
     const p = pks.find(p => p.id === t.paketId);
-    csv += `${t.tgl},"${c ? c.nama : '?'}","${p ? p.nama : '?'}",${t.harga},${t.hpp},${t.profit},${t.statusBayar},"${(t.catatan || '').replace(/"/g, '""')}"\n`;
+    csv += `${t.tgl},"${c ? c.nama : '?'}","${p ? p.nama : '?'}",${t.harga},${t.hpp},${t.profit},${t.statusBayar},"${(t.storeName || 'Nama Store').replace(/"/g,'""')}","${(t.customerNotes || '').replace(/"/g,'""')}","${(t.catatan || '').replace(/"/g, '""')}"\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
@@ -1125,7 +1438,6 @@ function applyProfilePhoto(base64) {
 
 // ─── STARTUP ───
 (function init() {
-  // Dark mode
   const savedDark = DB.get('darkMode');
   if (savedDark) {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -1137,7 +1449,6 @@ function applyProfilePhoto(base64) {
     if (label) label.textContent = 'Light Mode';
   }
 
-  // Default month filters
   const curMonth = new Date().toISOString().substring(0, 7);
   ['filterBulanTransaksi', 'filterLaporanPeriode', 'filterProfitBulan'].forEach(id => {
     const el = document.getElementById(id);
