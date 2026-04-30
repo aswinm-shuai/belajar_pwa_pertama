@@ -1,677 +1,726 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Subflow</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="/belajar_pwa_pertama/manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Subflow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/belajar_pwa_pertama/manifest.json">
 
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/belajar_pwa_pertama/service-worker.js');
-}
-</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/belajar_pwa_pertama/service-worker.js');
+    }
+  </script>
 
-<!-- Firebase SDK v10 modular (ESM via CDN) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, updateEmail, updatePassword,
-    sendPasswordResetEmail, browserLocalPersistence, browserSessionPersistence, setPersistence
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore, doc, setDoc, getDoc, updateDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <!-- Firebase SDK v10 modular (ESM via CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      signOut, onAuthStateChanged, updateEmail, updatePassword,
+      sendPasswordResetEmail, browserLocalPersistence, browserSessionPersistence, setPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAa79AiF0E6BPYUhxkDSo5Bqjdiw6-MlnA",
-    authDomain: "subflow-web-8070c.firebaseapp.com",
-    projectId: "subflow-web-8070c",
-    storageBucket: "subflow-web-8070c.firebasestorage.app",
-    messagingSenderId: "139957202151",
-    appId: "1:139957202151:web:7605a63c5f29712e608642"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  window._auth = auth;
-  window._db = db;
-  window._fsDoc = doc;
-  window._fsGetDoc = getDoc;
-  window._fsSetDoc = setDoc;
-  window._signOut = () => signOut(auth);
-
-  function fbErrMsg(code) {
-    const map = {
-      'auth/email-already-in-use': 'Email sudah terdaftar!',
-      'auth/invalid-email': 'Format email tidak valid!',
-      'auth/weak-password': 'Password minimal 6 karakter!',
-      'auth/user-not-found': 'Email atau password salah!',
-      'auth/wrong-password': 'Email atau password salah!',
-      'auth/invalid-credential': 'Email atau password salah!',
-      'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
-      'auth/network-request-failed': 'Gagal terhubung ke server. Periksa koneksi internet.',
-      'auth/user-disabled': 'Akun ini telah dinonaktifkan.',
-      'auth/requires-recent-login': 'Silakan login ulang untuk melanjutkan.',
+    const firebaseConfig = {
+      apiKey: "AIzaSyAa79AiF0E6BPYUhxkDSo5Bqjdiw6-MlnA",
+      authDomain: "subflow-web-8070c.firebaseapp.com",
+      projectId: "subflow-web-8070c",
+      storageBucket: "subflow-web-8070c.firebasestorage.app",
+      messagingSenderId: "139957202151",
+      appId: "1:139957202151:web:7605a63c5f29712e608642"
     };
-    return map[code] || 'Terjadi kesalahan. Coba lagi.';
-  }
 
-  window.doRegister = async function() {
-    const name  = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const pass  = document.getElementById('regPass').value;
-    if (!name || !email || !pass) { showAuthMsg('Semua field wajib diisi!'); return; }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showAuthMsg('Format email tidak valid!'); return; }
-    if (pass.length < 6) { showAuthMsg('Password minimal 6 karakter!'); return; }
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      await setDoc(doc(db, 'users', cred.user.uid), { name, email });
-      await signOut(auth);
-      showAuthMsg('Akun berhasil dibuat! Silakan login.', true);
-      setTimeout(() => showAuthTab('login'), 1500);
-    } catch (e) { showAuthMsg(fbErrMsg(e.code)); }
-  };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  window.doLogin = async function() {
-    const email    = document.getElementById('loginEmail').value.trim();
-    const pass     = document.getElementById('loginPass').value;
-    const remember = document.getElementById('rememberMe').checked;
-    if (!email || !pass) { showAuthMsg('Email & password wajib diisi!'); return; }
-    try {
-      await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) { showAuthMsg(fbErrMsg(e.code)); }
-  };
+    window._auth = auth;
+    window._db = db;
+    window._fsDoc = doc;
+    window._fsGetDoc = getDoc;
+    window._fsSetDoc = setDoc;
+    window._signOut = () => signOut(auth);
 
-  window.doLogout = async function() { await signOut(auth); };
-
-  window.showForgotPass = async function() {
-    const email = prompt('Masukkan email yang terdaftar:');
-    if (!email) return;
-    try {
-      await sendPasswordResetEmail(auth, email);
-      showToast('Link reset password telah dikirim ke email kamu!', 'success');
-    } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
-  };
-
-  window.saveProfile = async function() {
-    const name  = document.getElementById('editName').value.trim();
-    const email = document.getElementById('editEmail').value.trim();
-    const pass  = document.getElementById('editPass').value;
-    if (!name || !email) { showToast('Nama & email wajib diisi!', 'error'); return; }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Format email tidak valid!', 'error'); return; }
-    if (pass && pass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
-    const user = auth.currentUser;
-    if (!user) { showToast('Sesi habis. Silakan login ulang.', 'error'); return; }
-    try {
-      await updateDoc(doc(db, 'users', user.uid), { name, email });
-      if (email !== user.email) await updateEmail(user, email);
-      if (pass) await updatePassword(user, pass);
-      document.getElementById('profileNameDisplay').textContent = name;
-      document.getElementById('profileEmailDisplay').textContent = email;
-      document.getElementById('editPass').value = '';
-      const savedPhoto = DB.get('photo_' + user.uid);
-      if (savedPhoto) applyProfilePhoto(savedPhoto);
-      showToast('Profil berhasil diperbarui!');
-    } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
-  };
-
-  window.handlePhotoUpload = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { showToast('Ukuran foto maksimal 2MB', 'error'); return; }
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const base64 = e.target.result;
-      const user = auth.currentUser;
-      if (user) DB.set('photo_' + user.uid, base64);
-      applyProfilePhoto(base64);
-      showToast('Foto profil berhasil diperbarui! 📸');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  onAuthStateChanged(auth, async (user) => {
-    // Sembunyikan loading screen setelah auth siap
-    const splash = document.getElementById('loading-screen');
-    if (splash) {
-      splash.classList.add('hidden');
-      setTimeout(() => splash.remove(), 500);
+    function fbErrMsg(code) {
+      const map = {
+        'auth/email-already-in-use': 'Email sudah terdaftar!',
+        'auth/invalid-email': 'Format email tidak valid!',
+        'auth/weak-password': 'Password minimal 6 karakter!',
+        'auth/user-not-found': 'Email atau password salah!',
+        'auth/wrong-password': 'Email atau password salah!',
+        'auth/invalid-credential': 'Email atau password salah!',
+        'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
+        'auth/network-request-failed': 'Gagal terhubung ke server. Periksa koneksi internet.',
+        'auth/user-disabled': 'Akun ini telah dinonaktifkan.',
+        'auth/requires-recent-login': 'Silakan login ulang untuk melanjutkan.',
+      };
+      return map[code] || 'Terjadi kesalahan. Coba lagi.';
     }
 
-    if (user) {
-      let name = user.displayName || user.email.split('@')[0];
+    window.doRegister = async function () {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value;
+      if (!name || !email || !pass) { showAuthMsg('Semua field wajib diisi!'); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showAuthMsg('Format email tidak valid!'); return; }
+      if (pass.length < 6) { showAuthMsg('Password minimal 6 karakter!'); return; }
       try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) name = snap.data().name || name;
-      } catch(_) {}
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await setDoc(doc(db, 'users', cred.user.uid), { name, email });
+        await signOut(auth);
+        showAuthMsg('Akun berhasil dibuat! Silakan login.', true);
+        setTimeout(() => showAuthTab('login'), 1500);
+      } catch (e) { showAuthMsg(fbErrMsg(e.code)); }
+    };
 
-      await DB.setUID(user.uid);
+    window.doLogin = async function () {
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      const remember = document.getElementById('rememberMe').checked;
+      if (!email || !pass) { showAuthMsg('Email & password wajib diisi!'); return; }
+      try {
+        await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (e) { showAuthMsg(fbErrMsg(e.code)); }
+    };
 
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display  = 'flex';
+    window.doLogout = async function () { await signOut(auth); };
 
-      document.getElementById('profileNameDisplay').textContent = name;
-      document.getElementById('profileEmailDisplay').textContent = user.email;
-      document.getElementById('editName').value  = name;
-      document.getElementById('editEmail').value = user.email;
+    window.showForgotPass = async function () {
+      const email = prompt('Masukkan email yang terdaftar:');
+      if (!email) return;
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showToast('Link reset password telah dikirim ke email kamu!', 'success');
+      } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
+    };
 
-      const userSnap = await getDoc(doc(db, 'users', user.uid));
-      if (userSnap.exists() && !userSnap.data().seeded) {
-        seedDemoData();
-        await setDoc(doc(db, 'users', user.uid), { ...userSnap.data(), seeded: true });
+    window.saveProfile = async function () {
+      const name = document.getElementById('editName').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      const pass = document.getElementById('editPass').value;
+      if (!name || !email) { showToast('Nama & email wajib diisi!', 'error'); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Format email tidak valid!', 'error'); return; }
+      if (pass && pass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+      const user = auth.currentUser;
+      if (!user) { showToast('Sesi habis. Silakan login ulang.', 'error'); return; }
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { name, email });
+        if (email !== user.email) await updateEmail(user, email);
+        if (pass) await updatePassword(user, pass);
+        document.getElementById('profileNameDisplay').textContent = name;
+        document.getElementById('profileEmailDisplay').textContent = email;
+        document.getElementById('editPass').value = '';
+        const savedPhoto = DB.get('photo_' + user.uid);
+        if (savedPhoto) applyProfilePhoto(savedPhoto);
+        showToast('Profil berhasil diperbarui!');
+      } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
+    };
+
+    window.handlePhotoUpload = function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { showToast('Ukuran foto maksimal 2MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64 = e.target.result;
+        const user = auth.currentUser;
+        if (user) DB.set('photo_' + user.uid, base64);
+        applyProfilePhoto(base64);
+        showToast('Foto profil berhasil diperbarui! 📸');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      // Sembunyikan loading screen setelah auth siap
+      const splash = document.getElementById('loading-screen');
+      if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => splash.remove(), 500);
       }
 
-      updateLanggananStatus();
-      checkReminders();
+      if (user) {
+        let name = user.displayName || user.email.split('@')[0];
+        try {
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          if (snap.exists()) name = snap.data().name || name;
+        } catch (_) { }
 
-      const savedPhoto = DB.get('photo_' + user.uid);
-      if (savedPhoto) applyProfilePhoto(savedPhoto);
+        await DB.setUID(user.uid);
 
-      showPage('dashboard');
-    } else {
-      DB.clearUID();
-      document.getElementById('auth-screen').style.display = 'flex';
-      document.getElementById('app-screen').style.display  = 'none';
-    }
-  });
-</script>
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+
+        document.getElementById('profileNameDisplay').textContent = name;
+        document.getElementById('profileEmailDisplay').textContent = user.email;
+        document.getElementById('editName').value = name;
+        document.getElementById('editEmail').value = user.email;
+
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (userSnap.exists() && !userSnap.data().seeded) {
+          seedDemoData();
+          await setDoc(doc(db, 'users', user.uid), { ...userSnap.data(), seeded: true });
+        }
+
+        updateLanggananStatus();
+        checkReminders();
+
+        const savedPhoto = DB.get('photo_' + user.uid);
+        if (savedPhoto) applyProfilePhoto(savedPhoto);
+
+        showPage('dashboard');
+      } else {
+        DB.clearUID();
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app-screen').style.display = 'none';
+      }
+    });
+  </script>
 </head>
+
 <body>
 
-<!-- LOADING SCREEN -->
-<div id="loading-screen">
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
     <div class="loading-content">
-        <img src="./icons/logo-subflow-192.png"
-             alt="Subflow Logo"
-             class="loading-logo"
-             onerror="this.onerror=null;this.src='./logo.png';">
-        <h1>Subflow</h1>
-        <div class="loading-spinner"></div>
+      <img src="icons/logo subflow 192x192.png" alt="Subflow Logo" class="loading-logo"
+        onerror="this.onerror=null;this.src='./logo.png';">
+      <h1>Subflow</h1>
+      <div class="loading-spinner"></div>
     </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- AUTH SCREEN -->
-<div id="auth-screen" class="auth-screen">
-  <div class="auth-wrap">
-    <div class="auth-logo">
-        <img src="./icons/logo-subflow-192.png"
-             alt="Subflow Logo"
-             class="app-logo"
-             onerror="this.onerror=null;this.src='./logo.png';">
-        <span>Subflow</span>
-    </div>
-    <p class="auth-tagline">Kelola langganan digital kamu</p>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="showAuthTab('login')">Masuk</button>
-      <button class="auth-tab" id="tabRegister" onclick="showAuthTab('register')">Daftar</button>
-    </div>
-
-    <div id="loginForm" class="auth-form">
-      <div class="field-group">
-        <label>Email</label>
-        <input type="email" class="field-input" id="loginEmail" placeholder="email@kamu.com">
-      </div>
-      <div class="field-group">
-        <label>Password</label>
-        <div class="field-pw">
-          <input type="password" class="field-input" id="loginPass" placeholder="••••••••">
-          <button onclick="togglePass('loginPass')" class="pw-eye"><i class="bi bi-eye"></i></button>
-        </div>
-      </div>
-      <div class="auth-row">
-        <label class="check-wrap">
-          <input type="checkbox" id="rememberMe"> <span>Ingat saya</span>
-        </label>
-        <a href="#" onclick="showForgotPass()" class="auth-link">Lupa password?</a>
-      </div>
-      <button class="btn-auth" onclick="doLogin()">Masuk</button>
-    </div>
-
-    <div id="registerForm" class="auth-form" style="display:none;">
-      <div class="field-group">
-        <label>Nama Lengkap</label>
-        <input type="text" class="field-input" id="regName" placeholder="Nama kamu">
-      </div>
-      <div class="field-group">
-        <label>Email</label>
-        <input type="email" class="field-input" id="regEmail" placeholder="email@kamu.com">
-      </div>
-      <div class="field-group">
-        <label>Password</label>
-        <input type="password" class="field-input" id="regPass" placeholder="Min. 6 karakter">
-      </div>
-      <button class="btn-auth" onclick="doRegister()">Buat Akun</button>
-    </div>
-
-    <p id="authMsg" class="auth-msg" style="display:none;"></p>
   </div>
-</div>
 
-<!-- APP SCREEN -->
-<div id="app-screen" class="app-screen" style="display:none;">
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
 
-  <!-- SIDEBAR (desktop only) -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><i class="bi bi-arrow-right-circle-fill"></i></div>
-      <span>Subflow</span>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-label">Utama</div>
-      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></div>
-      <div class="nav-item" data-page="transaksi" onclick="showPage('transaksi')">
-        <i class="bi bi-receipt"></i><span>Transaksi</span>
-        <span id="reminderBadge" class="nav-badge" style="display:none;">0</span>
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-wrap">
+      <div class="auth-logo">
+        <img src="icons/logo subflow 192x192.png" alt="Subflow Logo" class="app-logo"
+          onerror="this.onerror=null;this.src='./logo.png';">
+        <span>Subflow</span>
       </div>
-      <div class="nav-item" data-page="langganan" onclick="showPage('langganan')"><i class="bi bi-arrow-repeat"></i><span>Langganan</span></div>
+      <p class="auth-tagline">Kelola langganan digital kamu</p>
 
-      <div class="nav-label">Master Data</div>
-      <div class="nav-item" data-page="paket" onclick="showPage('paket')"><i class="bi bi-box-seam"></i><span>Paket</span></div>
-      <div class="nav-item" data-page="customer" onclick="showPage('customer')"><i class="bi bi-people-fill"></i><span>Customer</span></div>
-      <div class="nav-item" data-page="supplier" onclick="showPage('supplier')"><i class="bi bi-truck"></i><span>Supplier</span></div>
-
-      <div class="nav-label">Keuangan</div>
-      <div class="nav-item" data-page="laporan" onclick="showPage('laporan')"><i class="bi bi-bar-chart-fill"></i><span>Laporan</span></div>
-      <div class="nav-item" data-page="biaya" onclick="showPage('biaya')"><i class="bi bi-wallet2"></i><span>Biaya</span></div>
-      <div class="nav-item" data-page="profit" onclick="showPage('profit')"><i class="bi bi-graph-up-arrow"></i><span>Profit</span></div>
-
-      <div class="nav-label">Akun</div>
-      <div class="nav-item" data-page="profil" onclick="showPage('profil')"><i class="bi bi-person-circle"></i><span>Profil</span></div>
-    </nav>
-    <div class="sidebar-footer">
-      <button onclick="toggleTheme()" class="btn-sidebar-icon" id="darkToggleBtn" title="Toggle theme">
-        <i class="bi bi-moon" id="darkIcon"></i>
-      </button>
-      <button onclick="doLogout()" class="btn-sidebar-icon btn-logout" title="Logout">
-        <i class="bi bi-box-arrow-right"></i>
-      </button>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <div class="main-wrap" id="mainWrap">
-
-    <!-- TOP BAR -->
-    <header class="topbar" id="topbar">
-      <div class="topbar-left">
-        <button class="btn-menu-mobile" onclick="toggleMobileMenu()" id="mobileMenuBtn">
-          <i class="bi bi-list"></i>
-        </button>
-        <span class="topbar-title" id="topbarTitle">Dashboard</span>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="showAuthTab('login')">Masuk</button>
+        <button class="auth-tab" id="tabRegister" onclick="showAuthTab('register')">Daftar</button>
       </div>
-      <div class="topbar-right" id="topbarRight">
-        <button onclick="toggleTheme()" class="btn-icon-top" title="Toggle theme">
-          <i class="bi bi-moon" id="darkIconMobile"></i>
-        </button>
-      </div>
-    </header>
 
-    <!-- PAGE CONTENT -->
-    <div class="content-area" id="contentArea">
-
-      <!-- DASHBOARD -->
-      <div class="page-section active" id="page-dashboard">
-        <div class="page-hero" id="dashHero">
-          <div>
-            <div class="page-title">Dashboard </div>
-            <div class="page-sub" id="dashGreeting">Subflow – Kelola langgananmu</div>
+      <div id="loginForm" class="auth-form">
+        <div class="field-group">
+          <label>Email</label>
+          <input type="email" class="field-input" id="loginEmail" placeholder="email@kamu.com">
+        </div>
+        <div class="field-group">
+          <label>Password</label>
+          <div class="field-pw">
+            <input type="password" class="field-input" id="loginPass" placeholder="••••••••">
+            <button onclick="togglePass('loginPass')" class="pw-eye"><i class="bi bi-eye"></i></button>
           </div>
         </div>
-        <div class="stats-grid" id="dashStats"></div>
-        <div class="section-title">Penjualan 6 Bulan</div>
-        <div class="card-box"><canvas id="salesChart" height="220"></canvas></div>
-        <div class="row-two">
-          <div>
-            <div class="section-title">Paket Terlaris</div>
-            <div class="card-box"><canvas id="packageChart" height="200"></canvas></div>
+        <div class="auth-row">
+          <label class="check-wrap">
+            <input type="checkbox" id="rememberMe"> <span>Ingat saya</span>
+          </label>
+          <a href="#" onclick="showForgotPass()" class="auth-link">Lupa password?</a>
+        </div>
+        <button class="btn-auth" onclick="doLogin()">Masuk</button>
+      </div>
+
+      <div id="registerForm" class="auth-form" style="display:none;">
+        <div class="field-group">
+          <label>Nama Lengkap</label>
+          <input type="text" class="field-input" id="regName" placeholder="Nama kamu">
+        </div>
+        <div class="field-group">
+          <label>Email</label>
+          <input type="email" class="field-input" id="regEmail" placeholder="email@kamu.com">
+        </div>
+        <div class="field-group">
+          <label>Password</label>
+          <input type="password" class="field-input" id="regPass" placeholder="Min. 6 karakter">
+        </div>
+        <button class="btn-auth" onclick="doRegister()">Buat Akun</button>
+      </div>
+
+      <p id="authMsg" class="auth-msg" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="app-screen" class="app-screen" style="display:none;">
+
+    <!-- SIDEBAR (desktop only) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><i class="bi bi-arrow-right-circle-fill"></i></div>
+        <span>Subflow</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Utama</div>
+        <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><i
+            class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></div>
+        <div class="nav-item" data-page="transaksi" onclick="showPage('transaksi')">
+          <i class="bi bi-receipt"></i><span>Transaksi</span>
+          <span id="reminderBadge" class="nav-badge" style="display:none;">0</span>
+        </div>
+        <div class="nav-item" data-page="langganan" onclick="showPage('langganan')"><i
+            class="bi bi-arrow-repeat"></i><span>Langganan</span></div>
+
+        <div class="nav-label">Master Data</div>
+        <div class="nav-item" data-page="paket" onclick="showPage('paket')"><i
+            class="bi bi-box-seam"></i><span>Paket</span></div>
+        <div class="nav-item" data-page="customer" onclick="showPage('customer')"><i
+            class="bi bi-people-fill"></i><span>Customer</span></div>
+        <div class="nav-item" data-page="supplier" onclick="showPage('supplier')"><i
+            class="bi bi-truck"></i><span>Supplier</span></div>
+
+        <div class="nav-label">Keuangan</div>
+        <div class="nav-item" data-page="laporan" onclick="showPage('laporan')"><i
+            class="bi bi-bar-chart-fill"></i><span>Laporan</span></div>
+        <div class="nav-item" data-page="biaya" onclick="showPage('biaya')"><i
+            class="bi bi-wallet2"></i><span>Biaya</span></div>
+        <div class="nav-item" data-page="profit" onclick="showPage('profit')"><i
+            class="bi bi-graph-up-arrow"></i><span>Profit</span></div>
+
+        <div class="nav-label">Akun</div>
+        <div class="nav-item" data-page="profil" onclick="showPage('profil')"><i
+            class="bi bi-person-circle"></i><span>Profil</span></div>
+      </nav>
+      <div class="sidebar-footer">
+        <button onclick="toggleTheme()" class="btn-sidebar-icon" id="darkToggleBtn" title="Toggle theme">
+          <i class="bi bi-moon" id="darkIcon"></i>
+        </button>
+        <button onclick="doLogout()" class="btn-sidebar-icon btn-logout" title="Logout">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-wrap" id="mainWrap">
+
+      <!-- TOP BAR -->
+      <header class="topbar" id="topbar">
+        <div class="topbar-left">
+          <button class="btn-menu-mobile" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+            <i class="bi bi-list"></i>
+          </button>
+          <span class="topbar-title" id="topbarTitle">Dashboard</span>
+        </div>
+        <div class="topbar-right" id="topbarRight">
+          <button onclick="toggleTheme()" class="btn-icon-top" title="Toggle theme">
+            <i class="bi bi-moon" id="darkIconMobile"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <div class="content-area" id="contentArea">
+
+        <!-- DASHBOARD -->
+        <div class="page-section active" id="page-dashboard">
+          <div class="page-hero" id="dashHero">
+            <div>
+              <div class="page-title">Dashboard </div>
+              <div class="page-sub" id="dashGreeting">Subflow – Kelola langgananmu</div>
+            </div>
           </div>
-          <div>
-            <div class="section-title"><i class="bi bi-bell-fill" style="color:var(--warning);"></i> Reminder H-3</div>
-            <div class="card-box" id="reminderCard">
-              <div id="reminderList"><p class="empty-note">Tidak ada yang akan expired</p></div>
+          <div class="stats-grid" id="dashStats"></div>
+          <div class="section-title">Penjualan 6 Bulan</div>
+          <div class="card-box"><canvas id="salesChart" height="220"></canvas></div>
+          <div class="row-two">
+            <div>
+              <div class="section-title">Paket Terlaris</div>
+              <div class="card-box"><canvas id="packageChart" height="200"></canvas></div>
+            </div>
+            <div>
+              <div class="section-title"><i class="bi bi-bell-fill" style="color:var(--warning);"></i> Reminder H-3
+              </div>
+              <div class="card-box" id="reminderCard">
+                <div id="reminderList">
+                  <p class="empty-note">Tidak ada yang akan expired</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- TRANSAKSI -->
-      <div class="page-section" id="page-transaksi">
-        <div class="page-header-row">
-          <div><div class="page-title">Transaksi</div><div class="page-sub">Semua riwayat penjualan</div></div>
-          <button class="btn-accent" onclick="openModalTransaksi()"><i class="bi bi-plus-lg"></i> Tambah</button>
-        </div>
-        <div class="filter-bar">
-          <div class="search-wrap"><i class="bi bi-search"></i><input id="searchTransaksi" placeholder="Cari..." oninput="renderTransaksi()"></div>
-          <select id="filterStatusPembayaran" onchange="renderTransaksi()">
-            <option value="">Semua Bayar</option>
-            <option value="lunas">Lunas</option>
-            <option value="pending">Pending</option>
-          </select>
-          <input type="month" id="filterBulanTransaksi" onchange="renderTransaksi()">
-        </div>
-        <div id="transaksiList" class="card-list"></div>
-      </div>
-
-      <!-- LANGGANAN -->
-      <div class="page-section" id="page-langganan">
-        <div class="page-header-row">
-          <div><div class="page-title">Langganan</div><div class="page-sub">Status & perpanjang langganan</div></div>
-        </div>
-        <div class="filter-bar">
-          <div class="search-wrap"><i class="bi bi-search"></i><input id="searchLangganan" placeholder="Cari customer..." oninput="renderLangganan()"></div>
-          <select id="filterLanggananStatus" onchange="renderLangganan()">
-            <option value="">Semua Status</option>
-            <option value="aktif">Aktif</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
-        <div id="langgananList" class="card-list"></div>
-      </div>
-
-      <!-- PAKET -->
-      <div class="page-section" id="page-paket">
-        <div class="page-header-row">
-          <div><div class="page-title">Master Paket</div><div class="page-sub">Produk yang kamu jual</div></div>
-          <button class="btn-accent" onclick="openModalPaket()"><i class="bi bi-plus-lg"></i> Tambah</button>
-        </div>
-        <div id="paketList" class="card-list"></div>
-      </div>
-
-      <!-- CUSTOMER -->
-      <div class="page-section" id="page-customer">
-        <div class="page-header-row">
-          <div><div class="page-title">Customer</div><div class="page-sub">Data pelanggan kamu</div></div>
-          <button class="btn-accent" onclick="openModalCustomer()"><i class="bi bi-plus-lg"></i> Tambah</button>
-        </div>
-        <div class="filter-bar">
-          <div class="search-wrap"><i class="bi bi-search"></i><input id="searchCustomer" placeholder="Cari nama / WA..." oninput="renderCustomer()"></div>
-        </div>
-        <div id="customerList" class="card-list"></div>
-      </div>
-
-      <!-- SUPPLIER -->
-      <div class="page-section" id="page-supplier">
-        <div class="page-header-row">
-          <div><div class="page-title">Supplier</div><div class="page-sub">Data supplier akun digital</div></div>
-          <button class="btn-accent" onclick="openModalSupplier()"><i class="bi bi-plus-lg"></i> Tambah</button>
-        </div>
-        <div id="supplierList" class="card-list"></div>
-      </div>
-
-      <!-- LAPORAN -->
-      <div class="page-section" id="page-laporan">
-        <div class="page-header-row">
-          <div><div class="page-title">Laporan</div><div class="page-sub">Ringkasan omzet & penjualan</div></div>
-          <button class="btn-accent" onclick="exportLaporan()"><i class="bi bi-download"></i> CSV</button>
-        </div>
-        <div class="filter-bar">
-          <select id="filterLaporanTipe" onchange="renderLaporan()">
-            <option value="bulan">Per Bulan</option>
-            <option value="hari">Per Hari</option>
-          </select>
-          <input type="month" id="filterLaporanPeriode" onchange="renderLaporan()">
-        </div>
-        <div class="stats-grid" id="laporanStats"></div>
-        <div class="section-title">Tren Penjualan</div>
-        <div class="card-box"><canvas id="laporanChart" height="200"></canvas></div>
-        <div class="section-title">Top Paket</div>
-        <div class="card-box"><canvas id="laporanPaketChart" height="200"></canvas></div>
-        <div class="section-title">Detail Transaksi</div>
-        <div id="laporanList" class="card-list"></div>
-      </div>
-
-      <!-- BIAYA -->
-      <div class="page-section" id="page-biaya">
-        <div class="page-header-row">
-          <div><div class="page-title">Biaya</div><div class="page-sub">Catat biaya operasional</div></div>
-          <button class="btn-accent" onclick="openModalBiaya()"><i class="bi bi-plus-lg"></i> Tambah</button>
-        </div>
-        <div class="stats-grid" id="biayaStats"></div>
-        <div id="biayaList" class="card-list"></div>
-      </div>
-
-      <!-- PROFIT -->
-      <div class="page-section" id="page-profit">
-        <div class="page-header-row">
-          <div><div class="page-title">Profit</div><div class="page-sub">Laba kotor & bersih</div></div>
-        </div>
-        <div class="filter-bar">
-          <input type="month" id="filterProfitBulan" onchange="renderProfit()">
-        </div>
-        <div class="stats-grid" id="profitStats"></div>
-        <div class="section-title">Profit Bulanan</div>
-        <div class="card-box"><canvas id="profitChart" height="220"></canvas></div>
-        <div class="section-title">Rincian Bulan Ini</div>
-        <div class="card-box" id="profitDetail"></div>
-      </div>
-
-      <!-- PROFIL -->
-     <div class="page-section" id="page-profil"> <div class="profil-hero"> <div class="profil-avatar-wrap" onclick="document.getElementById('photoInput').click()"> <div id="profileAvatarBig" class="profil-avatar">A</div> <div class="profil-avatar-edit"><i class="bi bi-camera-fill"></i></div> </div> <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)"> <div id="profileNameDisplay" class="profil-name">–</div> <div id="profileEmailDisplay" class="profil-email">–</div> </div>
->
-
-        <div class="card-box" style="margin-top:1.25rem;">
-          <div class="field-group">
-            <label>Nama Lengkap</label>
-            <input type="text" class="field-input" id="editName">
+        <!-- TRANSAKSI -->
+        <div class="page-section" id="page-transaksi">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Transaksi</div>
+              <div class="page-sub">Semua riwayat penjualan</div>
+            </div>
+            <button class="btn-accent" onclick="openModalTransaksi()"><i class="bi bi-plus-lg"></i> Tambah</button>
           </div>
-          <div class="field-group">
-            <label>Email</label>
-            <input type="email" class="field-input" id="editEmail">
+          <div class="filter-bar">
+            <div class="search-wrap"><i class="bi bi-search"></i><input id="searchTransaksi" placeholder="Cari..."
+                oninput="renderTransaksi()"></div>
+            <select id="filterStatusPembayaran" onchange="renderTransaksi()">
+              <option value="">Semua Bayar</option>
+              <option value="lunas">Lunas</option>
+              <option value="pending">Pending</option>
+            </select>
+            <input type="month" id="filterBulanTransaksi" onchange="renderTransaksi()">
           </div>
-          <div class="field-group">
-            <label>Password Baru <span class="label-opt">(kosongkan jika tidak ganti)</span></label>
-            <input type="password" class="field-input" id="editPass" placeholder="Min. 6 karakter">
-          </div>
-          <button class="btn-auth" onclick="saveProfile()" style="margin-top:0.5rem;">Simpan Perubahan</button>
+          <div id="transaksiList" class="card-list"></div>
         </div>
 
-        <div class="profil-actions">
-          <button onclick="toggleTheme()" class="profil-action-btn">
-            <i class="bi bi-moon" id="darkIconProfil"></i>
-            <span id="darkModeLabel">Dark Mode</span>
-          </button>
-          <button onclick="doLogout()" class="profil-action-btn profil-action-danger">
-            <i class="bi bi-box-arrow-right"></i>
-            <span>Logout</span>
-          </button>
+        <!-- LANGGANAN -->
+        <div class="page-section" id="page-langganan">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Langganan</div>
+              <div class="page-sub">Status & perpanjang langganan</div>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <div class="search-wrap"><i class="bi bi-search"></i><input id="searchLangganan"
+                placeholder="Cari customer..." oninput="renderLangganan()"></div>
+            <select id="filterLanggananStatus" onchange="renderLangganan()">
+              <option value="">Semua Status</option>
+              <option value="aktif">Aktif</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+          <div id="langgananList" class="card-list"></div>
         </div>
 
-        <p class="copy-note">© Subflow — dibuat dengan 🩷 oleh Aswin Maulana</p>
-      </div>
+        <!-- PAKET -->
+        <div class="page-section" id="page-paket">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Master Paket</div>
+              <div class="page-sub">Produk yang kamu jual</div>
+            </div>
+            <button class="btn-accent" onclick="openModalPaket()"><i class="bi bi-plus-lg"></i> Tambah</button>
+          </div>
+          <div id="paketList" class="card-list"></div>
+        </div>
 
-    </div><!-- content-area -->
+        <!-- CUSTOMER -->
+        <div class="page-section" id="page-customer">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Customer</div>
+              <div class="page-sub">Data pelanggan kamu</div>
+            </div>
+            <button class="btn-accent" onclick="openModalCustomer()"><i class="bi bi-plus-lg"></i> Tambah</button>
+          </div>
+          <div class="filter-bar">
+            <div class="search-wrap"><i class="bi bi-search"></i><input id="searchCustomer"
+                placeholder="Cari nama / WA..." oninput="renderCustomer()"></div>
+          </div>
+          <div id="customerList" class="card-list"></div>
+        </div>
 
-    <!-- BOTTOM NAV (mobile) -->
-    <nav class="bottom-nav" id="bottomNav">
-      <button class="bnav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-        <i class="bi bi-grid-1x2-fill"></i>
-        <span>Home</span>
-      </button>
-      <button class="bnav-item" data-page="transaksi" onclick="showPage('transaksi')">
-        <i class="bi bi-receipt"></i>
-        <span>Transaksi</span>
-        <span class="bnav-badge" id="bnavBadge" style="display:none;"></span>
-      </button>
-      <button class="bnav-fab-wrap" onclick="openFabMenu()">
-        <div class="bnav-fab" id="fabBtn"><i class="bi bi-plus-lg"></i></div>
-      </button>
-      <button class="bnav-item" id="bnav-master" onclick="toggleMasterMenu()">
-        <i class="bi bi-layers-fill"></i>
-        <span>Master</span>
-      </button>
-      <button class="bnav-item" data-page="profil" onclick="showPage('profil')">
-        <i class="bi bi-person-circle"></i>
-        <span>Akun</span>
-      </button>
-    </nav>
+        <!-- SUPPLIER -->
+        <div class="page-section" id="page-supplier">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Supplier</div>
+              <div class="page-sub">Data supplier akun digital</div>
+            </div>
+            <button class="btn-accent" onclick="openModalSupplier()"><i class="bi bi-plus-lg"></i> Tambah</button>
+          </div>
+          <div id="supplierList" class="card-list"></div>
+        </div>
 
-    <!-- FAB MENU -->
-    <div class="fab-menu" id="fabMenu" style="display:none;">
-      <div class="fab-overlay" onclick="closeFabMenu()"></div>
-      <div class="fab-options">
-        <button class="fab-option" onclick="closeFabMenu();openModalTransaksi();">
-          <span class="fab-opt-icon"><i class="bi bi-receipt"></i></span>
+        <!-- LAPORAN -->
+        <div class="page-section" id="page-laporan">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Laporan</div>
+              <div class="page-sub">Ringkasan omzet & penjualan</div>
+            </div>
+            <button class="btn-accent" onclick="exportLaporan()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+          <div class="filter-bar">
+            <select id="filterLaporanTipe" onchange="renderLaporan()">
+              <option value="bulan">Per Bulan</option>
+              <option value="hari">Per Hari</option>
+            </select>
+            <input type="month" id="filterLaporanPeriode" onchange="renderLaporan()">
+          </div>
+          <div class="stats-grid" id="laporanStats"></div>
+          <div class="section-title">Tren Penjualan</div>
+          <div class="card-box"><canvas id="laporanChart" height="200"></canvas></div>
+          <div class="section-title">Top Paket</div>
+          <div class="card-box"><canvas id="laporanPaketChart" height="200"></canvas></div>
+          <div class="section-title">Detail Transaksi</div>
+          <div id="laporanList" class="card-list"></div>
+        </div>
+
+        <!-- BIAYA -->
+        <div class="page-section" id="page-biaya">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Biaya</div>
+              <div class="page-sub">Catat biaya operasional</div>
+            </div>
+            <button class="btn-accent" onclick="openModalBiaya()"><i class="bi bi-plus-lg"></i> Tambah</button>
+          </div>
+          <div class="stats-grid" id="biayaStats"></div>
+          <div id="biayaList" class="card-list"></div>
+        </div>
+
+        <!-- PROFIT -->
+        <div class="page-section" id="page-profit">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Profit</div>
+              <div class="page-sub">Laba kotor & bersih</div>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <input type="month" id="filterProfitBulan" onchange="renderProfit()">
+          </div>
+          <div class="stats-grid" id="profitStats"></div>
+          <div class="section-title">Profit Bulanan</div>
+          <div class="card-box"><canvas id="profitChart" height="220"></canvas></div>
+          <div class="section-title">Rincian Bulan Ini</div>
+          <div class="card-box" id="profitDetail"></div>
+        </div>
+
+        <!-- PROFIL -->
+        <div class="page-section" id="page-profil">
+          <div class="profil-hero">
+            <div class="profil-avatar-wrap" onclick="document.getElementById('photoInput').click()">
+              <div id="profileAvatarBig" class="profil-avatar">A</div>
+              <div class="profil-avatar-edit"><i class="bi bi-camera-fill"></i></div>
+            </div> <input type="file" id="photoInput" accept="image/*" style="display:none;"
+              onchange="handlePhotoUpload(event)">
+            <div id="profileNameDisplay" class="profil-name">–</div>
+            <div id="profileEmailDisplay" class="profil-email">–</div>
+          </div>
+          >
+
+          <div class="card-box" style="margin-top:1.25rem;">
+            <div class="field-group">
+              <label>Nama Lengkap</label>
+              <input type="text" class="field-input" id="editName">
+            </div>
+            <div class="field-group">
+              <label>Email</label>
+              <input type="email" class="field-input" id="editEmail">
+            </div>
+            <div class="field-group">
+              <label>Password Baru <span class="label-opt">(kosongkan jika tidak ganti)</span></label>
+              <input type="password" class="field-input" id="editPass" placeholder="Min. 6 karakter">
+            </div>
+            <button class="btn-auth" onclick="saveProfile()" style="margin-top:0.5rem;">Simpan Perubahan</button>
+          </div>
+
+          <div class="profil-actions">
+            <button onclick="toggleTheme()" class="profil-action-btn">
+              <i class="bi bi-moon" id="darkIconProfil"></i>
+              <span id="darkModeLabel">Dark Mode</span>
+            </button>
+            <button onclick="doLogout()" class="profil-action-btn profil-action-danger">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+
+          <p class="copy-note">© Subflow — dibuat dengan 🩷 oleh Aswin Maulana</p>
+        </div>
+
+      </div><!-- content-area -->
+
+      <!-- BOTTOM NAV (mobile) -->
+      <nav class="bottom-nav" id="bottomNav">
+        <button class="bnav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Home</span>
+        </button>
+        <button class="bnav-item" data-page="transaksi" onclick="showPage('transaksi')">
+          <i class="bi bi-receipt"></i>
           <span>Transaksi</span>
+          <span class="bnav-badge" id="bnavBadge" style="display:none;"></span>
         </button>
-        <button class="fab-option" onclick="closeFabMenu();openModalCustomer();">
-          <span class="fab-opt-icon"><i class="bi bi-person-plus-fill"></i></span>
-          <span>Customer</span>
+        <button class="bnav-fab-wrap" onclick="openFabMenu()">
+          <div class="bnav-fab" id="fabBtn"><i class="bi bi-plus-lg"></i></div>
         </button>
-        <button class="fab-option" onclick="closeFabMenu();openModalPaket();">
-          <span class="fab-opt-icon"><i class="bi bi-box-seam"></i></span>
-          <span>Paket</span>
+        <button class="bnav-item" id="bnav-master" onclick="toggleMasterMenu()">
+          <i class="bi bi-layers-fill"></i>
+          <span>Master</span>
         </button>
-        <button class="fab-option" onclick="closeFabMenu();openModalBiaya();">
-          <span class="fab-opt-icon"><i class="bi bi-wallet2"></i></span>
-          <span>Biaya</span>
+        <button class="bnav-item" data-page="profil" onclick="showPage('profil')">
+          <i class="bi bi-person-circle"></i>
+          <span>Akun</span>
         </button>
-      </div>
-    </div>
+      </nav>
 
-    <!-- MASTER MENU (popup) -->
-    <div class="master-menu" id="masterMenu" style="display:none;">
-      <div class="fab-overlay" onclick="closeMasterMenu()"></div>
-      <div class="master-panel">
-        <div class="master-panel-title">Master Data & Keuangan</div>
-        <div class="master-grid">
-          <button class="master-item" onclick="closeMasterMenu();showPage('paket');">
-            <i class="bi bi-box-seam"></i><span>Paket</span>
+      <!-- FAB MENU -->
+      <div class="fab-menu" id="fabMenu" style="display:none;">
+        <div class="fab-overlay" onclick="closeFabMenu()"></div>
+        <div class="fab-options">
+          <button class="fab-option" onclick="closeFabMenu();openModalTransaksi();">
+            <span class="fab-opt-icon"><i class="bi bi-receipt"></i></span>
+            <span>Transaksi</span>
           </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('customer');">
-            <i class="bi bi-people-fill"></i><span>Customer</span>
+          <button class="fab-option" onclick="closeFabMenu();openModalCustomer();">
+            <span class="fab-opt-icon"><i class="bi bi-person-plus-fill"></i></span>
+            <span>Customer</span>
           </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('supplier');">
-            <i class="bi bi-truck"></i><span>Supplier</span>
+          <button class="fab-option" onclick="closeFabMenu();openModalPaket();">
+            <span class="fab-opt-icon"><i class="bi bi-box-seam"></i></span>
+            <span>Paket</span>
           </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('langganan');">
-            <i class="bi bi-arrow-repeat"></i><span>Langganan</span>
-          </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('laporan');">
-            <i class="bi bi-bar-chart-fill"></i><span>Laporan</span>
-          </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('biaya');">
-            <i class="bi bi-wallet2"></i><span>Biaya</span>
-          </button>
-          <button class="master-item" onclick="closeMasterMenu();showPage('profit');">
-            <i class="bi bi-graph-up-arrow"></i><span>Profit</span>
+          <button class="fab-option" onclick="closeFabMenu();openModalBiaya();">
+            <span class="fab-opt-icon"><i class="bi bi-wallet2"></i></span>
+            <span>Biaya</span>
           </button>
         </div>
       </div>
-    </div>
 
-  </div><!-- main-wrap -->
-</div><!-- app-screen -->
+      <!-- MASTER MENU (popup) -->
+      <div class="master-menu" id="masterMenu" style="display:none;">
+        <div class="fab-overlay" onclick="closeMasterMenu()"></div>
+        <div class="master-panel">
+          <div class="master-panel-title">Master Data & Keuangan</div>
+          <div class="master-grid">
+            <button class="master-item" onclick="closeMasterMenu();showPage('paket');">
+              <i class="bi bi-box-seam"></i><span>Paket</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('customer');">
+              <i class="bi bi-people-fill"></i><span>Customer</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('supplier');">
+              <i class="bi bi-truck"></i><span>Supplier</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('langganan');">
+              <i class="bi bi-arrow-repeat"></i><span>Langganan</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('laporan');">
+              <i class="bi bi-bar-chart-fill"></i><span>Laporan</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('biaya');">
+              <i class="bi bi-wallet2"></i><span>Biaya</span>
+            </button>
+            <button class="master-item" onclick="closeMasterMenu();showPage('profit');">
+              <i class="bi bi-graph-up-arrow"></i><span>Profit</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-<!-- MODAL CONTAINER -->
-<div id="modalContainer"></div>
+    </div><!-- main-wrap -->
+  </div><!-- app-screen -->
 
-<script src="app.js"></script>
-<script>
-(async function initPWA() {
-  if (!('serviceWorker' in navigator)) return;
+  <!-- MODAL CONTAINER -->
+  <div id="modalContainer"></div>
 
-  try {
-    // ── Daftarkan SW ──────────────────────────────────────────
-    const reg = await navigator.serviceWorker.register(
-      '/belajar_pwa_pertama/sw.js',
-      { scope: '/belajar_pwa_pertama/' }
-    );
-    console.log('[SW] Terdaftar, scope:', reg.scope);
+  <script src="app.js"></script>
+  <script>
+    (async function initPWA() {
+      if (!('serviceWorker' in navigator)) return;
 
-    // Update SW jika ada versi baru
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker?.addEventListener('statechange', () => {
-        if (newWorker.statechange === 'installed' && navigator.serviceWorker.controller) {
-          newWorker.postMessage({ type: 'SKIP_WAITING' });
-        }
-      });
-    });
-
-    // ── Push Notification Permission ──────────────────────────
-    if ('Notification' in window && 'PushManager' in window) {
-      // Minta izin notifikasi saat user sudah login (tidak langsung saat buka)
-      window.requestPushPermission = async function () {
-        try {
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            console.log('[Push] Izin diberikan');
-            // Tampilkan notifikasi test agar PWABuilder mendeteksi
-            reg.showNotification('Subflow Aktif! 🎉', {
-              body:  'Push notification berhasil diaktifkan.',
-              icon:  '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
-              badge: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
-              tag:   'subflow-welcome',
-            });
-          }
-        } catch (e) {
-          console.warn('[Push] Gagal minta izin:', e);
-        }
-      };
-    }
-
-    // ── Background Sync ───────────────────────────────────────
-    window.addToSyncQueue = async function (url, method, body) {
-      if (!('sync' in reg)) {
-        console.warn('[Sync] Background sync tidak didukung browser ini');
-        return;
-      }
       try {
-        const id    = Date.now().toString();
-        const queue = await caches.open('subflow-sync-queue');
-        await queue.put(
-          `/sync-queue/${id}`,
-          new Response(JSON.stringify({ id, url, method, body }), {
-            headers: { 'Content-Type': 'application/json' }
-          })
+        // ── Daftarkan SW ──────────────────────────────────────────
+        const reg = await navigator.serviceWorker.register(
+          '/belajar_pwa_pertama/sw.js',
+          { scope: '/belajar_pwa_pertama/' }
         );
-        await reg.sync.register('sync-pending-data');
-        console.log('[Sync] Ditambahkan ke queue:', id);
-      } catch (e) {
-        console.warn('[Sync] Gagal register sync:', e);
-      }
-    };
+        console.log('[SW] Terdaftar, scope:', reg.scope);
 
-    // ── Periodic Background Sync ──────────────────────────────
-    if ('periodicSync' in reg) {
-      try {
-        const status = await navigator.permissions.query({
-          name: 'periodic-background-sync'
-        });
-        if (status.state === 'granted') {
-          await reg.periodicSync.register('update-subflow-data', {
-            minInterval: 24 * 60 * 60 * 1000 // 1 hari
+        // Update SW jika ada versi baru
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.statechange === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
           });
-          console.log('[PeriodicSync] Terdaftar');
-        }
-      } catch (e) {
-        console.warn('[PeriodicSync] Tidak didukung atau ditolak:', e);
-      }
-    }
+        });
 
-  } catch (err) {
-    console.error('[SW] Registrasi gagal:', err);
-  }
-})();
-</script>
+        // ── Push Notification Permission ──────────────────────────
+        if ('Notification' in window && 'PushManager' in window) {
+          // Minta izin notifikasi saat user sudah login (tidak langsung saat buka)
+          window.requestPushPermission = async function () {
+            try {
+              const permission = await Notification.requestPermission();
+              if (permission === 'granted') {
+                console.log('[Push] Izin diberikan');
+                // Tampilkan notifikasi test agar PWABuilder mendeteksi
+                reg.showNotification('Subflow Aktif! 🎉', {
+                  body: 'Push notification berhasil diaktifkan.',
+                  icon: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
+                  badge: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
+                  tag: 'subflow-welcome',
+                });
+              }
+            } catch (e) {
+              console.warn('[Push] Gagal minta izin:', e);
+            }
+          };
+        }
+
+        // ── Background Sync ───────────────────────────────────────
+        window.addToSyncQueue = async function (url, method, body) {
+          if (!('sync' in reg)) {
+            console.warn('[Sync] Background sync tidak didukung browser ini');
+            return;
+          }
+          try {
+            const id = Date.now().toString();
+            const queue = await caches.open('subflow-sync-queue');
+            await queue.put(
+              `/sync-queue/${id}`,
+              new Response(JSON.stringify({ id, url, method, body }), {
+                headers: { 'Content-Type': 'application/json' }
+              })
+            );
+            await reg.sync.register('sync-pending-data');
+            console.log('[Sync] Ditambahkan ke queue:', id);
+          } catch (e) {
+            console.warn('[Sync] Gagal register sync:', e);
+          }
+        };
+
+        // ── Periodic Background Sync ──────────────────────────────
+        if ('periodicSync' in reg) {
+          try {
+            const status = await navigator.permissions.query({
+              name: 'periodic-background-sync'
+            });
+            if (status.state === 'granted') {
+              await reg.periodicSync.register('update-subflow-data', {
+                minInterval: 24 * 60 * 60 * 1000 // 1 hari
+              });
+              console.log('[PeriodicSync] Terdaftar');
+            }
+          } catch (e) {
+            console.warn('[PeriodicSync] Tidak didukung atau ditolak:', e);
+          }
+        }
+
+      } catch (err) {
+        console.error('[SW] Registrasi gagal:', err);
+      }
+    })();
+  </script>
 
 </body>
+
 </html>
