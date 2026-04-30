@@ -145,6 +145,13 @@ if ('serviceWorker' in navigator) {
   };
 
   onAuthStateChanged(auth, async (user) => {
+    // Sembunyikan loading screen setelah auth siap
+    const splash = document.getElementById('loading-screen');
+    if (splash) {
+      splash.classList.add('hidden');
+      setTimeout(() => splash.remove(), 500);
+    }
+
     if (user) {
       let name = user.displayName || user.email.split('@')[0];
       try {
@@ -185,6 +192,17 @@ if ('serviceWorker' in navigator) {
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+    <div class="loading-content">
+        <img src="./icons/logo-subflow-192.png"
+             alt="Subflow Logo"
+             class="loading-logo"
+             onerror="this.onerror=null;this.src='./logo.png';">
+        <h1>Subflow</h1>
+        <div class="loading-spinner"></div>
+    </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
@@ -193,10 +211,11 @@ if ('serviceWorker' in navigator) {
 <div id="auth-screen" class="auth-screen">
   <div class="auth-wrap">
     <div class="auth-logo">
-      <div class="auth-logo-icon">
-        <i class="bi bi-arrow-right-circle-fill"></i>
-      </div>
-      <span>Subflow</span>
+        <img src="./icons/logo-subflow-192.png"
+             alt="Subflow Logo"
+             class="app-logo"
+             onerror="this.onerror=null;this.src='./logo.png';">
+        <span>Subflow</span>
     </div>
     <p class="auth-tagline">Kelola langganan digital kamu</p>
 
@@ -278,7 +297,7 @@ if ('serviceWorker' in navigator) {
       <div class="nav-item" data-page="profil" onclick="showPage('profil')"><i class="bi bi-person-circle"></i><span>Profil</span></div>
     </nav>
     <div class="sidebar-footer">
-      <button onclick="toggleDark()" class="btn-sidebar-icon" id="darkToggleBtn" title="Toggle dark mode">
+      <button onclick="toggleTheme()" class="btn-sidebar-icon" id="darkToggleBtn" title="Toggle theme">
         <i class="bi bi-moon" id="darkIcon"></i>
       </button>
       <button onclick="doLogout()" class="btn-sidebar-icon btn-logout" title="Logout">
@@ -299,7 +318,7 @@ if ('serviceWorker' in navigator) {
         <span class="topbar-title" id="topbarTitle">Dashboard</span>
       </div>
       <div class="topbar-right" id="topbarRight">
-        <button onclick="toggleDark()" class="btn-icon-top" title="Dark mode">
+        <button onclick="toggleTheme()" class="btn-icon-top" title="Toggle theme">
           <i class="bi bi-moon" id="darkIconMobile"></i>
         </button>
       </div>
@@ -465,7 +484,7 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <div class="profil-actions">
-          <button onclick="toggleDark()" class="profil-action-btn">
+          <button onclick="toggleTheme()" class="profil-action-btn">
             <i class="bi bi-moon" id="darkIconProfil"></i>
             <span id="darkModeLabel">Dark Mode</span>
           </button>
