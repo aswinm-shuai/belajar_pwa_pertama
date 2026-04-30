@@ -107,14 +107,111 @@ function updateLanggananStatus() {
   if (changed) DB.saveTransaksis(trxs);
 }
 
+// ─── WHATSAPP SERVICE ───
+const WhatsAppService = {
+  // Konfigurasi API (Bisa diganti dengan endpoint Fonnte, WABlas, dsb)
+  API_URL: 'https://api.fonnte.com/send',
+  API_TOKEN: 'TOKEN_ANDA_DISINI',
+  
+  formatNumber(phone) {
+    if (!phone) return '';
+    let f = phone.replace(/\D/g, '');
+    if (f.startsWith('0')) f = '62' + f.substring(1);
+    else if (f.startsWith('+62')) f = '62' + f.substring(3);
+    return f;
+  },
+
+  async logNotification(data) {
+    try {
+      if (!window._db || !window._fsAddDoc) return;
+      await window._fsAddDoc(window._fsCollection(window._db, 'whatsapp_logs'), {
+        ...data,
+        sentAt: window._fsServerTimestamp()
+      });
+    } catch (e) { console.warn('[WA Log Error]', e); }
+  },
+
+  async sendWA(phoneRaw, message, trxId, custId, retries = 3) {
+    const phone = this.formatNumber(phoneRaw);
+    if (!phone) return false;
+
+    // Jika token belum diset, jalankan mode simulasi agar aplikasi tidak crash
+    if (this.API_TOKEN === 'TOKEN_ANDA_DISINI') {
+      console.warn('[WhatsAppService] Mode Simulasi: Token belum diatur. Mengirim simulasi WA H-3 ke', phone);
+      await this.logNotification({ subscriptionId: trxId, customerId: custId, phone, message, status: 'simulated_success' });
+      return true; 
+    }
+
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(this.API_URL, {
+          method: 'POST',
+          headers: { 'Authorization': this.API_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: phone, message: message })
+        });
+        const data = await response.json();
+        if (response.ok && data.status) {
+          await this.logNotification({ subscriptionId: trxId, customerId: custId, phone, message, status: 'success' });
+          return true;
+        } else {
+          throw new Error(data.reason || data.detail || 'API Error');
+        }
+      } catch (error) {
+        console.warn(`[WA Retry ${i+1}/${retries}] Failed:`, error.message);
+        if (i === retries - 1) {
+          showToast('Gagal mengirim notif WA otomatis', 'error');
+          await this.logNotification({ subscriptionId: trxId, customerId: custId, phone, message, status: 'failed', error: error.message });
+          return false;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+    return false;
+  }
+};
+
+// ─── REMINDERS & NOTIFICATIONS ───
 function checkReminders() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const expiring = DB.transaksis().filter(t => {
+  const trxs = DB.transaksis();
+  const custs = DB.customers();
+  const pks = DB.pakets();
+
+  const expiring = trxs.filter(t => {
     if (t.statusLangganan !== 'aktif') return false;
     const exp = new Date(t.expired); exp.setHours(0, 0, 0, 0);
-    const diff = (exp - today) / (1000 * 60 * 60 * 24);
+    const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
+    
+    // Otomatisasi WA H-3
+    if (diff === 3) {
+      if (!t.whatsappNotifications || !t.whatsappNotifications.h3Sent) {
+        const c = custs.find(c => c.id === t.custId);
+        const p = pks.find(p => p.id === t.paketId);
+        if (c && c.wa) {
+          const storeName = window.currentStoreName || 'Nama Store';
+          const tglExpired = new Date(t.expired).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+          const msg = `Halo ${c.nama},\n\nMasa aktif paket ${p ? p.nama : 'langganan Anda'} di ${storeName} akan berakhir dalam 3 hari, tepat pada ${tglExpired}.\n\nSegera lakukan perpanjangan agar layanan tetap aktif.\n\nTerima kasih.`;
+          
+          WhatsAppService.sendWA(c.wa, msg, t.id, c.id).then(success => {
+            if (success) {
+              const idx = DB.transaksis().findIndex(trx => trx.id === t.id);
+              if (idx >= 0) {
+                const trxsUpdate = DB.transaksis();
+                trxsUpdate[idx].whatsappNotifications = {
+                  h3Sent: true,
+                  h3SentAt: new Date().toISOString() // Fallback from serverTimestamp due to Array limitations
+                };
+                DB.saveTransaksis(trxsUpdate);
+              }
+            }
+          });
+        }
+      }
+    }
+
     return diff >= 0 && diff <= 3;
   });
+  
   const n = expiring.length;
   const badge = document.getElementById('reminderBadge');
   const bnavBadge = document.getElementById('bnavBadge');
@@ -147,7 +244,7 @@ function togglePass(id) {
 const PAGE_TITLES = {
   dashboard: 'Dashboard', transaksi: 'Transaksi', langganan: 'Langganan',
   paket: 'Master Paket', customer: 'Customer', supplier: 'Supplier',
-  laporan: 'Laporan', biaya: 'Biaya', profit: 'Profit', profil: 'Akun',
+  laporan: 'Laporan', biaya: 'Biaya', profit: 'Profit', lainnya: 'Lainnya',
 };
 
 const BNAV_MAP = {
@@ -156,7 +253,7 @@ const BNAV_MAP = {
   langganan: null,
   paket: null, customer: null, supplier: null,
   laporan: null, biaya: null, profit: null,
-  profil: 'profil',
+  lainnya: 'lainnya',
 };
 
 function showPage(name) {
@@ -226,8 +323,8 @@ function closeMasterMenu() {
 const THEMES = ['light', 'dark', 'system'];
 
 function applyThemeUI(theme) {
-  const icons = ['darkIcon', 'darkIconMobile', 'darkIconProfil'];
-  const label = document.getElementById('darkModeLabel');
+  const icons = ['darkIcon', 'darkIconMobile', 'darkIconLainnya'];
+  const label = document.getElementById('darkModeLabelLainnya');
   
   icons.forEach(id => {
     const el = document.getElementById(id);
@@ -317,12 +414,6 @@ function catatanField(val = '') {
 }
 
 // ─── INVOICE FIELDS ─── (NEW)
-function storeNameField(val = '') {
-  return fieldGroup(
-    'Nama Store <span style="font-size:11px;font-weight:400;color:var(--text-3);">(opsional)</span>',
-    `<input type="text" class="field-input" id="tStoreName" value="${val}" placeholder="cth: WinzStoreID">`
-  );
-}
 
 function customerNotesField(val = '') {
   return fieldGroup(
@@ -396,7 +487,6 @@ function openModalTransaksi(renewData = null) {
     ${catatanField('')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
-      ${storeNameField('')}
       ${customerNotesField('')}
     </div>`;
 
@@ -433,8 +523,7 @@ function editTransaksi(id) {
     ${catatanField(t.catatan || '')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
-      ${storeNameField(t.storeName && t.storeName !== 'Nama Store' ? t.storeName : '')}
-      ${customerNotesField(t.customerNotes && t.customerNotes !== `Terima kasih telah berbelanja di ${t.storeName || 'Nama Store'}.` ? t.customerNotes : '')}
+      ${customerNotesField(t.customerNotes || '')}
     </div>`;
 
   openModal('Edit Transaksi #' + id, html, 'saveTransaksi()', 'Update');
@@ -461,11 +550,9 @@ function saveTransaksi() {
   const catatanEl  = document.getElementById('tCatatan');
   const catatan    = catatanEl ? catatanEl.value.trim() : '';
 
-  // ─── Nama Store & Keterangan Invoice (NEW) ───
-  const storeNameEl     = document.getElementById('tStoreName');
+  // ─── Keterangan Invoice ───
   const customerNotesEl = document.getElementById('tCustomerNotes');
-  const storeNameRaw    = storeNameEl ? storeNameEl.value.trim() : '';
-  const storeName       = storeNameRaw || 'Nama Store';
+  const storeName       = window.currentStoreName || 'Nama Store';
   const customerNotesRaw = customerNotesEl ? customerNotesEl.value.trim() : '';
   const customerNotes    = customerNotesRaw || `Terima kasih telah berbelanja di ${storeName}.`;
 
@@ -483,7 +570,7 @@ function saveTransaksi() {
     tgl, custId, paketId,
     harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp,
     mulai, expired, statusLangganan, statusBayar, suppId, catatan,
-    storeName, customerNotes
+    customerNotes
   };
 
   if (_currentEditId !== null) {
@@ -515,7 +602,7 @@ function previewInvoice(id) {
   const c     = custs.find(c => c.id === t.custId);
   const p     = pks.find(p => p.id === t.paketId);
 
-  const storeName     = t.storeName     || 'Nama Store';
+  const storeName     = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
   const custName      = c ? c.nama : '–';
   const paketName     = p ? p.nama : '–';
@@ -592,7 +679,7 @@ function printInvoice(id) {
   const pks   = DB.pakets();
   const c     = custs.find(c => c.id === t.custId);
   const p     = pks.find(p => p.id === t.paketId);
-  const storeName     = t.storeName     || 'Nama Store';
+  const storeName     = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
   const durasi        = p ? p.durasi + ' Hari' : '–';
 
@@ -663,7 +750,7 @@ function downloadInvoice(id) {
   const custs = DB.customers();
   const c     = custs.find(c => c.id === t.custId);
 
-  const storeName = t.storeName || 'Nama Store';
+  const storeName = window.currentStoreName || 'Nama Store';
   const custName  = c ? c.nama : 'Customer';
   const dateStr   = t.tgl || new Date().toISOString().split('T')[0];
 
@@ -703,7 +790,7 @@ function exportInvoiceToJPG(id) {
   const c     = custs.find(c => c.id === t.custId);
   const p     = pks.find(p => p.id === t.paketId);
 
-  const storeName     = t.storeName     || 'Nama Store';
+  const storeName     = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
   const custName      = c ? c.nama : '–';
   const paketName     = p ? p.nama : '–';
@@ -1451,10 +1538,41 @@ function renderProfit() {
     </div>`).join('');
 }
 
-// ─── PROFIL ───
-function applyProfilePhoto(base64) {
-  const big = document.getElementById('profileAvatarBig');
-  if (big) big.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+// ─── LAINNYA & PREFERENSI ───
+function toggleAccordion(btn) {
+  const content = btn.nextElementSibling;
+  const isActive = btn.classList.contains('active');
+  
+  document.querySelectorAll('.accordion-btn').forEach(b => {
+    b.classList.remove('active');
+    b.nextElementSibling.classList.remove('active');
+  });
+
+  if (!isActive) {
+    btn.classList.add('active');
+    content.classList.add('active');
+  }
+}
+
+function savePreferences() {
+  const notifLangganan = document.getElementById('prefNotifLangganan') ? document.getElementById('prefNotifLangganan').checked : true;
+  const notifPaket = document.getElementById('prefNotifPaket') ? document.getElementById('prefNotifPaket').checked : true;
+  
+  DB.set('prefNotifLangganan', notifLangganan);
+  DB.set('prefNotifPaket', notifPaket);
+  showToast('Preferensi disimpan');
+}
+
+function loadPreferences() {
+  const notifLangganan = DB.get('prefNotifLangganan');
+  const notifPaket = DB.get('prefNotifPaket');
+  
+  if (notifLangganan !== null && document.getElementById('prefNotifLangganan')) {
+    document.getElementById('prefNotifLangganan').checked = notifLangganan;
+  }
+  if (notifPaket !== null && document.getElementById('prefNotifPaket')) {
+    document.getElementById('prefNotifPaket').checked = notifPaket;
+  }
 }
 
 // ─── STARTUP ───
@@ -1462,6 +1580,7 @@ function applyProfilePhoto(base64) {
   const savedTheme = DB.get('appTheme') || 'system';
   document.documentElement.classList.add(savedTheme);
   applyThemeUI(savedTheme);
+  loadPreferences();
 
   const curMonth = new Date().toISOString().substring(0, 7);
   ['filterBulanTransaksi', 'filterLaporanPeriode', 'filterProfitBulan'].forEach(id => {
