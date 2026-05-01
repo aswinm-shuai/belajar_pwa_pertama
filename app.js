@@ -31,49 +31,49 @@ const DB = (function () {
       _uid = null;
       _COLS.forEach(k => { _cache[k] = []; });
     },
-    get(k)    { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
-    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
-    pakets()     { return _cache.pakets     || []; },
-    customers()  { return _cache.customers  || []; },
-    suppliers()  { return _cache.suppliers  || []; },
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+    pakets() { return _cache.pakets || []; },
+    customers() { return _cache.customers || []; },
+    suppliers() { return _cache.suppliers || []; },
     transaksis() { return _cache.transaksis || []; },
-    biayas()     { return _cache.biayas     || []; },
-    savePakets(v)     { _cache.pakets     = v; _fsSet('pakets',     v); },
-    saveCustomers(v)  { _cache.customers  = v; _fsSet('customers',  v); },
-    saveSuppliers(v)  { _cache.suppliers  = v; _fsSet('suppliers',  v); },
+    biayas() { return _cache.biayas || []; },
+    savePakets(v) { _cache.pakets = v; _fsSet('pakets', v); },
+    saveCustomers(v) { _cache.customers = v; _fsSet('customers', v); },
+    saveSuppliers(v) { _cache.suppliers = v; _fsSet('suppliers', v); },
     saveTransaksis(v) { _cache.transaksis = v; _fsSet('transaksis', v); },
-    saveBiayas(v)     { _cache.biayas     = v; _fsSet('biayas',     v); },
+    saveBiayas(v) { _cache.biayas = v; _fsSet('biayas', v); },
   };
 })();
 
 // ─── SEED ───
 function seedDemoData() {
   DB.savePakets([
-    { id: 1, nama: 'Netflix 1P',       harga: 45000, hpp: 30000, durasi: 30, status: 'aktif' },
-    { id: 2, nama: 'Spotify 1B',       harga: 20000, hpp: 12000, durasi: 30, status: 'aktif' },
-    { id: 3, nama: 'Disney+ 1P',       harga: 35000, hpp: 22000, durasi: 30, status: 'aktif' },
-    { id: 4, nama: 'YouTube Premium',  harga: 25000, hpp: 16000, durasi: 30, status: 'aktif' },
-    { id: 5, nama: 'Netflix 7 Hari',   harga: 15000, hpp: 10000, durasi: 7,  status: 'aktif' },
+    { id: 1, nama: 'Netflix 1P', harga: 45000, hpp: 30000, durasi: 30, status: 'aktif' },
+    { id: 2, nama: 'Spotify 1B', harga: 20000, hpp: 12000, durasi: 30, status: 'aktif' },
+    { id: 3, nama: 'Disney+ 1P', harga: 35000, hpp: 22000, durasi: 30, status: 'aktif' },
+    { id: 4, nama: 'YouTube Premium', harga: 25000, hpp: 16000, durasi: 30, status: 'aktif' },
+    { id: 5, nama: 'Netflix 7 Hari', harga: 15000, hpp: 10000, durasi: 7, status: 'aktif' },
   ]);
   DB.saveCustomers([
-    { id: 1, nama: 'Budi Santoso',    wa: '6281234567890', catatan: 'VIP customer' },
-    { id: 2, nama: 'Sari Dewi',       wa: '6287654321098', catatan: '' },
-    { id: 3, nama: 'Andi Kurniawan',  wa: '6285555123456', catatan: 'Sering terlambat bayar' },
+    { id: 1, nama: 'Budi Santoso', wa: '6281234567890', catatan: 'VIP customer' },
+    { id: 2, nama: 'Sari Dewi', wa: '6287654321098', catatan: '' },
+    { id: 3, nama: 'Andi Kurniawan', wa: '6285555123456', catatan: 'Sering terlambat bayar' },
   ]);
   DB.saveSuppliers([
-    { id: 1, nama: 'Toko Akun ABC',   kontak: '6281111222333' },
+    { id: 1, nama: 'Toko Akun ABC', kontak: '6281111222333' },
     { id: 2, nama: 'DigitalStore ID', kontak: 'Telegram: @digitalstore' },
   ]);
   const today = new Date();
   DB.saveTransaksis([
-    { id: 1, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),   custId: 1, paketId: 1, harga: 45000, hpp: 30000, profit: 15000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), 31)),                  statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 1, catatan: 'Email: budi@gmail.com | Pass: Budi1234', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
-    { id: 2, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),   custId: 2, paketId: 2, harga: 20000, hpp: 12000, profit: 8000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)), statusLangganan: 'aktif',   statusBayar: 'lunas',   suppId: 2, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
-    { id: 3, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), custId: 3, paketId: 3, harga: 35000, hpp: 22000, profit: 13000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 44)), statusLangganan: 'expired',  statusBayar: 'lunas',   suppId: 1, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
-    { id: 4, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),   custId: 1, paketId: 4, harga: 25000, hpp: 16000, profit: 9000,  mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)),  expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)), statusLangganan: 'aktif',   statusBayar: 'pending', suppId: 2, catatan: 'Akun slot 3 dari supplier B', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 1, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)), custId: 1, paketId: 1, harga: 45000, hpp: 30000, profit: 15000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), 31)), statusLangganan: 'aktif', statusBayar: 'lunas', suppId: 1, catatan: 'Email: budi@gmail.com | Pass: Budi1234', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 2, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)), custId: 2, paketId: 2, harga: 20000, hpp: 12000, profit: 8000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 3)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)), statusLangganan: 'aktif', statusBayar: 'lunas', suppId: 2, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 3, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), custId: 3, paketId: 3, harga: 35000, hpp: 22000, profit: 13000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 15)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 44)), statusLangganan: 'expired', statusBayar: 'lunas', suppId: 1, catatan: '', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
+    { id: 4, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)), custId: 1, paketId: 4, harga: 25000, hpp: 16000, profit: 9000, mulai: fmtDate(new Date(today.getFullYear(), today.getMonth(), 5)), expired: fmtDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)), statusLangganan: 'aktif', statusBayar: 'pending', suppId: 2, catatan: 'Akun slot 3 dari supplier B', storeName: 'Nama Store', customerNotes: 'Terima kasih telah berbelanja di Nama Store.' },
   ]);
   DB.saveBiayas([
     { id: 1, nama: 'Iklan IG', nominal: 50000, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)) },
-    { id: 2, nama: 'Domain',   nominal: 20000, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 10)) },
+    { id: 2, nama: 'Domain', nominal: 20000, tgl: fmtDate(new Date(today.getFullYear(), today.getMonth(), 10)) },
   ]);
 }
 
@@ -90,7 +90,7 @@ function fmtRupiah(n) {
 function fmtShort(n) {
   n = Number(n || 0);
   if (n >= 1000000) return 'Rp ' + (n / 1000000).toFixed(1).replace('.0', '') + 'jt';
-  if (n >= 1000)    return 'Rp ' + (n / 1000).toFixed(0) + 'rb';
+  if (n >= 1000) return 'Rp ' + (n / 1000).toFixed(0) + 'rb';
   return 'Rp ' + n;
 }
 
@@ -112,7 +112,7 @@ const WhatsAppService = {
   // Konfigurasi API (Bisa diganti dengan endpoint Fonnte, WABlas, dsb)
   API_URL: 'https://api.fonnte.com/send',
   API_TOKEN: 'TOKEN_ANDA_DISINI',
-  
+
   formatNumber(phone) {
     if (!phone) return '';
     let f = phone.replace(/\D/g, '');
@@ -139,7 +139,7 @@ const WhatsAppService = {
     if (this.API_TOKEN === 'TOKEN_ANDA_DISINI') {
       console.warn('[WhatsAppService] Mode Simulasi: Token belum diatur. Mengirim simulasi WA H-3 ke', phone);
       await this.logNotification({ subscriptionId: trxId, customerId: custId, phone, message, status: 'simulated_success' });
-      return true; 
+      return true;
     }
 
     for (let i = 0; i < retries; i++) {
@@ -157,7 +157,7 @@ const WhatsAppService = {
           throw new Error(data.reason || data.detail || 'API Error');
         }
       } catch (error) {
-        console.warn(`[WA Retry ${i+1}/${retries}] Failed:`, error.message);
+        console.warn(`[WA Retry ${i + 1}/${retries}] Failed:`, error.message);
         if (i === retries - 1) {
           showToast('Gagal mengirim notif WA otomatis', 'error');
           await this.logNotification({ subscriptionId: trxId, customerId: custId, phone, message, status: 'failed', error: error.message });
@@ -181,7 +181,7 @@ function checkReminders() {
     if (t.statusLangganan !== 'aktif') return false;
     const exp = new Date(t.expired); exp.setHours(0, 0, 0, 0);
     const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
-    
+
     // Otomatisasi WA H-3
     if (diff === 3) {
       if (!t.whatsappNotifications || !t.whatsappNotifications.h3Sent) {
@@ -189,9 +189,9 @@ function checkReminders() {
         const p = pks.find(p => p.id === t.paketId);
         if (c && c.wa) {
           const storeName = window.currentStoreName || 'Nama Store';
-          const tglExpired = new Date(t.expired).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+          const tglExpired = new Date(t.expired).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
           const msg = `Halo ${c.nama},\n\nMasa aktif paket ${p ? p.nama : 'langganan Anda'} di ${storeName} akan berakhir dalam 3 hari, tepat pada ${tglExpired}.\n\nSegera lakukan perpanjangan agar layanan tetap aktif.\n\nTerima kasih.`;
-          
+
           WhatsAppService.sendWA(c.wa, msg, t.id, c.id).then(success => {
             if (success) {
               const idx = DB.transaksis().findIndex(trx => trx.id === t.id);
@@ -211,7 +211,7 @@ function checkReminders() {
 
     return diff >= 0 && diff <= 3;
   });
-  
+
   const n = expiring.length;
   const badge = document.getElementById('reminderBadge');
   const bnavBadge = document.getElementById('bnavBadge');
@@ -221,9 +221,9 @@ function checkReminders() {
 
 // ─── AUTH UI ───
 function showAuthTab(t) {
-  document.getElementById('loginForm').style.display    = t === 'login'    ? 'flex' : 'none';
+  document.getElementById('loginForm').style.display = t === 'login' ? 'flex' : 'none';
   document.getElementById('registerForm').style.display = t === 'register' ? 'flex' : 'none';
-  document.getElementById('tabLogin').classList.toggle('active',    t === 'login');
+  document.getElementById('tabLogin').classList.toggle('active', t === 'login');
   document.getElementById('tabRegister').classList.toggle('active', t === 'register');
   document.getElementById('authMsg').style.display = 'none';
 }
@@ -245,6 +245,13 @@ const PAGE_TITLES = {
   dashboard: 'Dashboard', transaksi: 'Transaksi', langganan: 'Langganan',
   paket: 'Master Paket', customer: 'Customer', supplier: 'Supplier',
   laporan: 'Laporan', biaya: 'Biaya', profit: 'Profit', lainnya: 'Lainnya',
+  'lainnya-akun': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Akun',
+  'lainnya-statistik': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Statistik',
+  'lainnya-preferensi': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Preferensi',
+  'lainnya-keamanan': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Keamanan',
+  'lainnya-notifikasi': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Notifikasi',
+  'lainnya-bantuan': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Bantuan',
+  'lainnya-tentang': '<button class="btn-icon-top" onclick="showPage(\'lainnya\')" style="display:inline-flex; border:none; background:none; padding:0; width:auto; height:auto; color:inherit; margin-right:8px;"><i class="bi bi-arrow-left"></i></button> Lainnya / Tentang',
 };
 
 const BNAV_MAP = {
@@ -261,14 +268,14 @@ function showPage(name) {
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
 
-  document.getElementById('topbarTitle').textContent = PAGE_TITLES[name] || name;
+  document.getElementById('topbarTitle').innerHTML = PAGE_TITLES[name] || name;
 
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.page === name);
   });
 
   document.querySelectorAll('.bnav-item').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === name);
+    b.classList.toggle('active', b.dataset.page ? name.startsWith(b.dataset.page) : false);
   });
 
   const ca = document.getElementById('contentArea');
@@ -278,12 +285,12 @@ function showPage(name) {
     dashboard: renderDashboard,
     transaksi: renderTransaksi,
     langganan: renderLangganan,
-    paket:     renderPaket,
-    customer:  renderCustomer,
-    supplier:  renderSupplier,
-    laporan:   renderLaporan,
-    biaya:     renderBiaya,
-    profit:    renderProfit,
+    paket: renderPaket,
+    customer: renderCustomer,
+    supplier: renderSupplier,
+    laporan: renderLaporan,
+    biaya: renderBiaya,
+    profit: renderProfit,
   };
   if (renders[name]) renders[name]();
 }
@@ -325,7 +332,7 @@ const THEMES = ['light', 'dark', 'system'];
 function applyThemeUI(theme) {
   const icons = ['darkIcon', 'darkIconMobile', 'darkIconLainnya'];
   const label = document.getElementById('darkModeLabelLainnya');
-  
+
   icons.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -334,7 +341,7 @@ function applyThemeUI(theme) {
       else el.className = 'bi bi-display';
     }
   });
-  
+
   if (label) {
     if (theme === 'light') label.textContent = 'Light Mode';
     else if (theme === 'dark') label.textContent = 'Dark Mode';
@@ -346,10 +353,10 @@ function toggleTheme() {
   let currentTheme = DB.get('appTheme') || 'system';
   let nextIdx = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
   let newTheme = THEMES[nextIdx];
-  
+
   document.documentElement.classList.remove('light', 'dark', 'system');
   document.documentElement.classList.add(newTheme);
-  
+
   applyThemeUI(newTheme);
   DB.set('appTheme', newTheme);
 }
@@ -450,7 +457,6 @@ function deleteTransaction(id) {
 
 function toggleBayar(id) {
   const trxs = DB.transaksis();
-  const idx = trxs.findIndex(t => t.id === id);
   if (idx < 0) return;
   trxs[idx].statusBayar = trxs[idx].statusBayar === 'lunas' ? 'pending' : 'lunas';
   DB.saveTransaksis(trxs);
@@ -458,19 +464,132 @@ function toggleBayar(id) {
   showToast('Status pembayaran diperbarui');
 }
 
+// ─── INVOICE & AUTOCOMPLETE HELPERS ───
+function generateInvoiceNumber(tglStr) {
+  if (!tglStr) tglStr = new Date().toISOString().split('T')[0];
+  const dateObj = new Date(tglStr);
+  if (isNaN(dateObj.getTime())) return 'INV-000000-001';
+
+  const yy = String(dateObj.getFullYear()).slice(2) || '00';
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0') || '00';
+  const dd = String(dateObj.getDate()).padStart(2, '0') || '00';
+  const prefix = `INV-${yy}${mm}${dd}-`;
+
+  const trxs = DB.transaksis();
+  const todaysTrx = trxs.filter(t => t.invoice_number && t.invoice_number.startsWith(prefix));
+
+  if (todaysTrx.length === 0) return prefix + '001';
+
+  let maxSeq = 0;
+  todaysTrx.forEach(t => {
+    const parts = t.invoice_number.split('-');
+    if (parts.length === 3) {
+      const seq = parseInt(parts[2], 10);
+      if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+    }
+  });
+  return prefix + String(maxSeq + 1).padStart(3, '0');
+}
+
+function setupCustomerAutocomplete() {
+  const input = document.getElementById('tCustName');
+  const hidden = document.getElementById('tCust');
+  const dropdown = document.getElementById('tCustDropdown');
+  const newWaContainer = document.getElementById('tCustNewWaContainer');
+  if (!input) return;
+
+  let debounceTimer;
+  const custs = DB.customers();
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    const val = this.value.trim().toLowerCase();
+
+    // Reset hidden ID if typing changed
+    if (hidden.value) {
+      const existing = custs.find(c => c.id == hidden.value);
+      if (!existing || existing.nama.toLowerCase() !== val) {
+        hidden.value = '';
+      }
+    }
+
+    if (!val) {
+      dropdown.style.display = 'none';
+      newWaContainer.style.display = 'none';
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      const matches = custs.filter(c => c.nama.toLowerCase().includes(val));
+      let html = '';
+
+      const exactMatch = custs.find(c => c.nama.toLowerCase() === val);
+
+      if (matches.length > 0) {
+        html = matches.map(c => `
+          <div class="ac-item" onclick="selectCustomer(${c.id}, '${c.nama.replace(/'/g, "\\'")}')">
+            <div>${c.nama}</div>
+            <div class="ac-sub">${c.wa || '-'}</div>
+          </div>
+        `).join('');
+      } else {
+        html = `<div class="ac-item ac-new" onclick="document.getElementById('tCustDropdown').style.display='none';"><i class="bi bi-plus-circle"></i> Tambah sebagai baru</div>`;
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.style.display = 'block';
+
+      if (!exactMatch && val) {
+        newWaContainer.style.display = 'block';
+      } else {
+        newWaContainer.style.display = 'none';
+      }
+    }, 300);
+  });
+
+  // Hide dropdown on click outside
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.ac-container')) {
+      if (dropdown) dropdown.style.display = 'none';
+    }
+  });
+}
+
+window.selectCustomer = function (id, name) {
+  document.getElementById('tCust').value = id;
+  document.getElementById('tCustName').value = name;
+  document.getElementById('tCustDropdown').style.display = 'none';
+  document.getElementById('tCustNewWaContainer').style.display = 'none';
+};
+
 // ─── MODAL TRANSAKSI ───
 function openModalTransaksi(renewData = null) {
   _currentEditId = null;
-  const pks    = DB.pakets().filter(p => p.status === 'aktif');
-  const custs  = DB.customers();
-  const supps  = DB.suppliers();
-  const today  = new Date().toISOString().split('T')[0];
+  const pks = DB.pakets().filter(p => p.status === 'aktif');
+  const custs = DB.customers();
+  const supps = DB.suppliers();
+  const today = new Date().toISOString().split('T')[0];
+  const invoiceNum = generateInvoiceNumber(today);
+
+  const initCustName = renewData && renewData.custId ? (custs.find(c => c.id === renewData.custId)?.nama || '') : '';
+  const initCustId = renewData && renewData.custId ? renewData.custId : '';
+
+  const customerHtml = `
+    <div class="ac-container">
+      <input type="text" class="field-input" id="tCustName" autocomplete="off" placeholder="Ketik nama customer..." value="${initCustName}">
+      <input type="hidden" id="tCust" value="${initCustId}">
+      <div id="tCustDropdown" class="ac-dropdown"></div>
+    </div>
+    <div id="tCustNewWaContainer" style="display:none; margin-top:8px;">
+      <span class="badge badge-warning" style="font-size:10px; padding:3px 8px; border-radius:4px; margin-bottom:6px; display:inline-block;"><i class="bi bi-person-plus-fill"></i> Customer Baru</span>
+      <input type="tel" class="field-input" id="tCustNewWa" placeholder="No WhatsApp (08... / +62...)">
+    </div>
+  `;
 
   const html = `
+    ${fieldGroup('No Invoice *', `<input type="text" class="field-input" id="tInvoice" value="${invoiceNum}" readonly style="background:var(--surface2);font-family:var(--mono);font-weight:700;color:var(--text);">`)}
     ${fieldGroup('Tanggal *', `<input type="date" class="field-input" id="tTgl" value="${today}">`)}
-    ${fieldGroup('Customer *', `<select class="field-input" id="tCust">
-      ${custs.map(c => `<option value="${c.id}" ${renewData && renewData.custId === c.id ? 'selected' : ''}>${c.nama}</option>`).join('')}
-    </select>`)}
+    ${fieldGroup('Customer *', customerHtml)}
     ${fieldGroup('Paket *', `<select class="field-input" id="tPaket" onchange="previewProfit()">
       ${pks.map(p => `<option value="${p.id}" data-harga="${p.harga}" data-hpp="${p.hpp}" data-durasi="${p.durasi}" ${renewData && renewData.paketId === p.id ? 'selected' : ''}>${p.nama} — ${fmtRupiah(p.harga)}</option>`).join('')}
     </select>`)}
@@ -488,9 +607,14 @@ function openModalTransaksi(renewData = null) {
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
       ${customerNotesField('')}
+    </div>
+    <div style="margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="tKirimWa" checked style="width:16px;height:16px;accent-color:var(--accent);">
+      <label for="tKirimWa" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer;margin:0;">Kirim ke WhatsApp setelah simpan</label>
     </div>`;
 
   openModal('Tambah Transaksi', html, 'saveTransaksi()', 'Simpan');
+  setupCustomerAutocomplete();
   setTimeout(previewProfit, 50);
 }
 
@@ -498,15 +622,30 @@ function editTransaksi(id) {
   const t = DB.transaksis().find(t => t.id === id);
   if (!t) return;
   _currentEditId = id;
-  const pks   = DB.pakets().filter(p => p.status === 'aktif');
+  const pks = DB.pakets().filter(p => p.status === 'aktif');
   const custs = DB.customers();
   const supps = DB.suppliers();
 
+  const initCustName = custs.find(c => c.id === t.custId)?.nama || '';
+  const initCustId = t.custId;
+  const invoiceNum = t.invoice_number || '-';
+
+  const customerHtml = `
+    <div class="ac-container">
+      <input type="text" class="field-input" id="tCustName" autocomplete="off" placeholder="Ketik nama customer..." value="${initCustName}">
+      <input type="hidden" id="tCust" value="${initCustId}">
+      <div id="tCustDropdown" class="ac-dropdown"></div>
+    </div>
+    <div id="tCustNewWaContainer" style="display:none; margin-top:8px;">
+      <span class="badge badge-warning" style="font-size:10px; padding:3px 8px; border-radius:4px; margin-bottom:6px; display:inline-block;"><i class="bi bi-person-plus-fill"></i> Customer Baru</span>
+      <input type="tel" class="field-input" id="tCustNewWa" placeholder="No WhatsApp (08... / +62...)">
+    </div>
+  `;
+
   const html = `
+    ${fieldGroup('No Invoice *', `<input type="text" class="field-input" id="tInvoice" value="${invoiceNum}" readonly style="background:var(--surface2);font-family:var(--mono);font-weight:700;color:var(--text);">`)}
     ${fieldGroup('Tanggal *', `<input type="date" class="field-input" id="tTgl" value="${t.tgl}">`)}
-    ${fieldGroup('Customer *', `<select class="field-input" id="tCust">
-      ${custs.map(c => `<option value="${c.id}" ${t.custId === c.id ? 'selected' : ''}>${c.nama}</option>`).join('')}
-    </select>`)}
+    ${fieldGroup('Customer *', customerHtml)}
     ${fieldGroup('Paket *', `<select class="field-input" id="tPaket" onchange="previewProfit()">
       ${pks.map(p => `<option value="${p.id}" data-harga="${p.harga}" data-hpp="${p.hpp}" data-durasi="${p.durasi}" ${t.paketId === p.id ? 'selected' : ''}>${p.nama} — ${fmtRupiah(p.harga)}</option>`).join('')}
     </select>`)}
@@ -524,54 +663,91 @@ function editTransaksi(id) {
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
       ${customerNotesField(t.customerNotes || '')}
+    </div>
+    <div style="margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="tKirimWa" style="width:16px;height:16px;accent-color:var(--accent);">
+      <label for="tKirimWa" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer;margin:0;">Kirim ulang ke WhatsApp</label>
     </div>`;
 
   openModal('Edit Transaksi #' + id, html, 'saveTransaksi()', 'Update');
+  setupCustomerAutocomplete();
   setTimeout(previewProfit, 50);
 }
 
 function previewProfit() {
   const sel = document.getElementById('tPaket'); if (!sel) return;
   const opt = sel.options[sel.selectedIndex]; if (!opt) return;
-  const harga  = parseInt(opt.dataset.harga || 0);
-  const hpp    = parseInt(opt.dataset.hpp   || 0);
+  const harga = parseInt(opt.dataset.harga || 0);
+  const hpp = parseInt(opt.dataset.hpp || 0);
   const profit = harga - hpp;
   const hEl = document.getElementById('tHarga'); if (hEl) hEl.value = fmtRupiah(harga);
-  const pEl = document.getElementById('tHpp');   if (pEl) pEl.value = fmtRupiah(hpp);
-  const pa  = document.getElementById('profitPreviewArea');
+  const pEl = document.getElementById('tHpp'); if (pEl) pEl.value = fmtRupiah(hpp);
+  const pa = document.getElementById('profitPreviewArea');
   if (pa) pa.innerHTML = `<div class="profit-preview-box"><span>Estimasi Profit</span><span>${fmtRupiah(profit)}</span></div>`;
 }
 
 function saveTransaksi() {
-  const tgl        = document.getElementById('tTgl').value;
-  const custId     = parseInt(document.getElementById('tCust').value);
-  const paketId    = parseInt(document.getElementById('tPaket').value);
+  const tgl = document.getElementById('tTgl').value;
+  let custId = parseInt(document.getElementById('tCust').value) || null;
+  const custName = document.getElementById('tCustName') ? document.getElementById('tCustName').value.trim() : '';
+  const paketId = parseInt(document.getElementById('tPaket').value);
   const statusBayar = document.getElementById('tStatusBayar').value;
-  const catatanEl  = document.getElementById('tCatatan');
-  const catatan    = catatanEl ? catatanEl.value.trim() : '';
+  const catatanEl = document.getElementById('tCatatan');
+  const catatan = catatanEl ? catatanEl.value.trim() : '';
+  const invoiceNum = document.getElementById('tInvoice') ? document.getElementById('tInvoice').value.trim() : '';
 
   // ─── Keterangan Invoice ───
   const customerNotesEl = document.getElementById('tCustomerNotes');
-  const storeName       = window.currentStoreName || 'Nama Store';
+  const storeName = window.currentStoreName || 'Nama Store';
   const customerNotesRaw = customerNotesEl ? customerNotesEl.value.trim() : '';
-  const customerNotes    = customerNotesRaw || `Terima kasih telah berbelanja di ${storeName}.`;
+  const customerNotes = customerNotesRaw || `Terima kasih telah berbelanja di ${storeName}.`;
 
-  if (!tgl || !custId || !paketId) { showToast('Lengkapi semua field!', 'error'); return; }
+  if (!tgl || !paketId || !invoiceNum) { showToast('Lengkapi semua field wajib!', 'error'); return; }
+
+  if (!custId && custName) {
+    const newWaRaw = document.getElementById('tCustNewWa') ? document.getElementById('tCustNewWa').value.trim() : '';
+    if (!newWaRaw) { showToast('No WhatsApp wajib diisi untuk customer baru!', 'error'); return; }
+    let rawWa = newWaRaw.replace(/\D/g, '');
+    if (rawWa.startsWith('0')) rawWa = '62' + rawWa.substring(1);
+    if (rawWa.length < 10) { showToast('Nomor WhatsApp tidak valid!', 'error'); return; }
+
+    const custs = DB.customers();
+    custId = custs.length ? Math.max(...custs.map(c => c.id)) + 1 : 1;
+    custs.push({ id: custId, nama: custName, wa: rawWa, created_at: new Date().toISOString() });
+    DB.saveCustomers(custs);
+  }
+
+  if (!custId) { showToast('Pilih atau ketik nama customer!', 'error'); return; }
+
+  // Cek duplikasi invoice
+  if (_currentEditId === null) {
+    if (DB.transaksis().find(t => t.invoice_number === invoiceNum)) {
+      showToast('No Invoice sudah digunakan!', 'error'); return;
+    }
+  }
+
   const paket = DB.pakets().find(p => p.id === paketId);
   if (!paket) { showToast('Paket tidak ditemukan', 'error'); return; }
-  const mulai   = tgl;
+  const mulai = tgl;
   const expDate = new Date(tgl); expDate.setDate(expDate.getDate() + paket.durasi);
   const expired = fmtDate(expDate);
-  const today   = new Date(); today.setHours(0, 0, 0, 0);
-  const expD    = new Date(expired); expD.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const expD = new Date(expired); expD.setHours(0, 0, 0, 0);
   const statusLangganan = today > expD ? 'expired' : 'aktif';
-  const suppId  = parseInt(document.getElementById('tSupp').value) || null;
+  const suppId = parseInt(document.getElementById('tSupp').value) || null;
   const trxData = {
     tgl, custId, paketId,
+    invoice_number: invoiceNum,
     harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp,
     mulai, expired, statusLangganan, statusBayar, suppId, catatan,
     customerNotes
   };
+
+  if (!trxData) return; // Safe check
+
+  const data = DB.transaksis() || [];
+  console.log('DATA:', data);
+  console.log('INVOICE:', invoiceNum);
 
   if (_currentEditId !== null) {
     updateTransaction(_currentEditId, trxData);
@@ -581,6 +757,35 @@ function saveTransaksi() {
     showToast('Transaksi disimpan 🎉');
     setTimeout(() => exportInvoiceToJPG(newId), 500);
   }
+
+  const kirimWa = document.getElementById('tKirimWa') && document.getElementById('tKirimWa').checked;
+  if (kirimWa) {
+    const c = DB.customers().find(c => c.id === custId);
+    if (c && c.wa) {
+      let waNo = c.wa.replace(/\D/g, '');
+      if (waNo.startsWith('0')) waNo = '62' + waNo.substring(1);
+
+      const parts = tgl.split('-');
+      const tglIndo = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : tgl;
+      const nmPaket = paket?.nama || 'Paket';
+      const drs = paket?.durasi ? `${paket.durasi} Hari` : '-';
+      const cName = c?.nama || 'Pelanggan';
+
+      // Sinkronisasi Nomor Pengirim & Nama Toko (Account Profile)
+      const finalStoreName = window.currentStoreName || 'Toko Kami';
+      const senderWa = window.currentStoreWa || 'Nomor Default';
+
+      const text = `Halo *${cName}* 👋\nTerima kasih sudah bertransaksi di *${finalStoreName}* 🙏\n\n📅 Tanggal: ${tglIndo}\n🧾 No Invoice: *${invoiceNum}*\n\n📦 Paket: ${nmPaket}\n⏳ Durasi: ${drs}\n\n💰 Total: Rp ${fmtRupiah(trxData.harga)}\n📊 Status: ${statusBayar.toUpperCase()}\n\nJika ada pertanyaan, silakan hubungi kami ya 😊`;
+
+      // Catatan Integrasi API:
+      // Jika kelak menggunakan Fonnte/Wablas, gunakan variabel senderWa sebagai referensi Sender ID.
+      // Saat ini menggunakan Direct Link wa.me diarahkan ke pelanggan:
+      window.open(`https://wa.me/${waNo}?text=${encodeURIComponent(text)}`, '_blank');
+    } else {
+      showToast('Nomor WhatsApp customer tidak tersedia', 'warning');
+    }
+  }
+
   closeModal();
   renderTransaksi();
   checkReminders();
@@ -595,24 +800,24 @@ function doRenewal(trxId) {
 
 // ─── INVOICE PREVIEW & PRINT (NEW) ───
 function previewInvoice(id) {
-  const t     = DB.transaksis().find(t => t.id === id);
+  const t = DB.transaksis().find(t => t.id === id);
   if (!t) return;
   const custs = DB.customers();
-  const pks   = DB.pakets();
-  const c     = custs.find(c => c.id === t.custId);
-  const p     = pks.find(p => p.id === t.paketId);
+  const pks = DB.pakets();
+  const c = custs.find(c => c.id === t.custId);
+  const p = pks.find(p => p.id === t.paketId);
 
-  const storeName     = window.currentStoreName || 'Nama Store';
+  const storeName = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
-  const custName      = c ? c.nama : '–';
-  const paketName     = p ? p.nama : '–';
-  const durasi        = p ? p.durasi + ' Hari' : '–';
+  const custName = c ? c.nama : '–';
+  const paketName = p ? p.nama : '–';
+  const durasi = p ? p.durasi + ' Hari' : '–';
 
   const invoiceHtml = `
     <div style="font-family:'DM Sans',sans-serif;max-width:420px;margin:0 auto;background:var(--surface);border-radius:16px;overflow:hidden;border:1px solid var(--border);">
       <div style="background:var(--accent);color:#fff;padding:20px 24px 16px;">
         <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;">${storeName}</div>
-        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice #${t.id}</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice ${t.invoice_number || '#' + t.id}</div>
       </div>
       <div style="padding:20px 24px;">
         <div style="display:grid;gap:10px;">
@@ -659,7 +864,7 @@ function previewInvoice(id) {
       <div class="modal-box" style="max-width:460px;">
         <div class="modal-drag"></div>
         <div class="modal-header">
-          <h5><i class="bi bi-receipt" style="margin-right:6px;"></i>Invoice #${t.id}</h5>
+          <h5><i class="bi bi-receipt" style="margin-right:6px;"></i>Invoice ${t.invoice_number || '#' + t.id}</h5>
           <button class="btn-modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button>
         </div>
         <div class="modal-body" id="invoicePreviewBody">${invoiceHtml}</div>
@@ -673,19 +878,19 @@ function previewInvoice(id) {
 }
 
 function printInvoice(id) {
-  const t     = DB.transaksis().find(t => t.id === id);
+  const t = DB.transaksis().find(t => t.id === id);
   if (!t) return;
   const custs = DB.customers();
-  const pks   = DB.pakets();
-  const c     = custs.find(c => c.id === t.custId);
-  const p     = pks.find(p => p.id === t.paketId);
-  const storeName     = window.currentStoreName || 'Nama Store';
+  const pks = DB.pakets();
+  const c = custs.find(c => c.id === t.custId);
+  const p = pks.find(p => p.id === t.paketId);
+  const storeName = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
-  const durasi        = p ? p.durasi + ' Hari' : '–';
+  const durasi = p ? p.durasi + ' Hari' : '–';
 
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Invoice #${t.id} — ${storeName}</title>
+    <title>Invoice ${t.invoice_number || '#' + t.id} — ${storeName}</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
       *{margin:0;padding:0;box-sizing:border-box;}
@@ -715,7 +920,7 @@ function printInvoice(id) {
     <div class="invoice">
       <div class="inv-header">
         <div class="inv-store">${storeName}</div>
-        <div class="inv-num">Invoice #${t.id}</div>
+        <div class="inv-num">Invoice ${t.invoice_number || '#' + t.id}</div>
       </div>
       <div class="inv-body">
         <div class="inv-row"><span class="inv-label">Tanggal</span><span class="inv-val">${t.tgl}</span></div>
@@ -748,15 +953,15 @@ function downloadInvoice(id) {
   const t = DB.transaksis().find(t => t.id === id);
   if (!t) return;
   const custs = DB.customers();
-  const c     = custs.find(c => c.id === t.custId);
+  const c = custs.find(c => c.id === t.custId);
 
   const storeName = window.currentStoreName || 'Nama Store';
-  const custName  = c ? c.nama : 'Customer';
-  const dateStr   = t.tgl || new Date().toISOString().split('T')[0];
+  const custName = c ? c.nama : 'Customer';
+  const dateStr = t.tgl || new Date().toISOString().split('T')[0];
 
   const targetEl = document.getElementById('invoicePreviewBody');
   if (!targetEl) return;
-  
+
   const invoiceContainer = targetEl.firstElementChild;
   if (!invoiceContainer) return;
 
@@ -786,15 +991,15 @@ function exportInvoiceToJPG(id) {
   const t = DB.transaksis().find(t => t.id === id);
   if (!t) return;
   const custs = DB.customers();
-  const pks   = DB.pakets();
-  const c     = custs.find(c => c.id === t.custId);
-  const p     = pks.find(p => p.id === t.paketId);
+  const pks = DB.pakets();
+  const c = custs.find(c => c.id === t.custId);
+  const p = pks.find(p => p.id === t.paketId);
 
-  const storeName     = window.currentStoreName || 'Nama Store';
+  const storeName = window.currentStoreName || 'Nama Store';
   const customerNotes = t.customerNotes || `Terima kasih telah berbelanja di ${storeName}.`;
-  const custName      = c ? c.nama : '–';
-  const paketName     = p ? p.nama : '–';
-  const durasi        = p ? p.durasi + ' Hari' : '–';
+  const custName = c ? c.nama : '–';
+  const paketName = p ? p.nama : '–';
+  const durasi = p ? p.durasi + ' Hari' : '–';
 
   const container = document.createElement('div');
   container.style.position = 'fixed';
@@ -807,7 +1012,7 @@ function exportInvoiceToJPG(id) {
     <div id="captureInvoiceTarget" style="font-family:'DM Sans',sans-serif;max-width:420px;margin:0 auto;background:#ffffff;border-radius:0;overflow:hidden;border:none;">
       <div style="background:#2563eb;color:#fff;padding:20px 24px 16px;">
         <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;">${storeName}</div>
-        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice #${t.id}</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px;">Invoice ${t.invoice_number || '#' + t.id}</div>
       </div>
       <div style="padding:20px 24px;background:#ffffff;color:#1e293b;">
         <div style="display:grid;gap:10px;">
@@ -873,21 +1078,21 @@ function exportInvoiceToJPG(id) {
 let _salesChart, _packageChart;
 
 function renderDashboard() {
-  const today      = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
   const todayMonth = today.substring(0, 7);
-  const trxs       = DB.transaksis();
-  const todayTrx   = trxs.filter(t => t.tgl === today);
-  const monthTrx   = trxs.filter(t => t.tgl && t.tgl.startsWith(todayMonth));
-  const aktif      = trxs.filter(t => t.statusLangganan === 'aktif').length;
-  const omzetToday = todayTrx.reduce((a, t) => a + t.harga,  0);
-  const profitMo   = monthTrx.reduce((a, t) => a + t.profit, 0);
-  const omzetMo    = monthTrx.reduce((a, t) => a + t.harga,  0);
+  const trxs = DB.transaksis();
+  const todayTrx = trxs.filter(t => t.tgl === today);
+  const monthTrx = trxs.filter(t => t.tgl && t.tgl.startsWith(todayMonth));
+  const aktif = trxs.filter(t => t.statusLangganan === 'aktif').length;
+  const omzetToday = todayTrx.reduce((a, t) => a + t.harga, 0);
+  const profitMo = monthTrx.reduce((a, t) => a + t.profit, 0);
+  const omzetMo = monthTrx.reduce((a, t) => a + t.harga, 0);
 
   document.getElementById('dashStats').innerHTML = [
     { label: 'Omzet Hari Ini', value: fmtShort(omzetToday), sub: `${todayTrx.length} transaksi`, icon: 'bi-cash-coin', bg: '#dbeafe', col: '#2563eb' },
-    { label: 'Omzet Bulan',    value: fmtShort(omzetMo),    sub: `${monthTrx.length} transaksi`, icon: 'bi-graph-up',  bg: '#d1fae5', col: '#065f46' },
-    { label: 'Profit Bulan',   value: fmtShort(profitMo),   sub: 'Laba kotor',                   icon: 'bi-trophy',    bg: '#fef3c7', col: '#92400e' },
-    { label: 'Aktif',          value: aktif,                 sub: 'Langganan aktif',              icon: 'bi-people-fill', bg: '#ede9fe', col: '#6d28d9' },
+    { label: 'Omzet Bulan', value: fmtShort(omzetMo), sub: `${monthTrx.length} transaksi`, icon: 'bi-graph-up', bg: '#d1fae5', col: '#065f46' },
+    { label: 'Profit Bulan', value: fmtShort(profitMo), sub: 'Laba kotor', icon: 'bi-trophy', bg: '#fef3c7', col: '#92400e' },
+    { label: 'Aktif', value: aktif, sub: 'Langganan aktif', icon: 'bi-people-fill', bg: '#ede9fe', col: '#6d28d9' },
   ].map(s => `
     <div class="stat-card">
       <div class="stat-icon" style="background:${s.bg};color:${s.col};"><i class="bi ${s.icon}"></i></div>
@@ -897,14 +1102,14 @@ function renderDashboard() {
     </div>`).join('');
 
   const months = [], omzetArr = [], profArr = [];
-  const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     const m = d.toISOString().substring(0, 7);
     months.push(MONTHS_ID[d.getMonth()]);
     const mt = trxs.filter(t => t.tgl && t.tgl.startsWith(m));
-    omzetArr.push(mt.reduce((a, t) => a + t.harga,  0));
-    profArr.push( mt.reduce((a, t) => a + t.profit, 0));
+    omzetArr.push(mt.reduce((a, t) => a + t.harga, 0));
+    profArr.push(mt.reduce((a, t) => a + t.profit, 0));
   }
   if (_salesChart) _salesChart.destroy();
   _salesChart = new Chart(document.getElementById('salesChart'), {
@@ -912,8 +1117,8 @@ function renderDashboard() {
     data: {
       labels: months,
       datasets: [
-        { label: 'Omzet',  data: omzetArr, backgroundColor: 'rgba(37,99,235,0.15)',  borderColor: '#2563eb', borderWidth: 2, borderRadius: 6 },
-        { label: 'Profit', data: profArr,  backgroundColor: 'rgba(16,185,129,0.15)', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 },
+        { label: 'Omzet', data: omzetArr, backgroundColor: 'rgba(37,99,235,0.15)', borderColor: '#2563eb', borderWidth: 2, borderRadius: 6 },
+        { label: 'Profit', data: profArr, backgroundColor: 'rgba(16,185,129,0.15)', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 },
       ],
     },
     options: {
@@ -931,7 +1136,7 @@ function renderDashboard() {
     type: 'doughnut',
     data: {
       labels: pkNames.length ? pkNames : ['Belum ada data'],
-      datasets: [{ data: pkVals.length ? pkVals : [1], backgroundColor: ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'], borderWidth: 0 }],
+      datasets: [{ data: pkVals.length ? pkVals : [1], backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'], borderWidth: 0 }],
     },
     options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: "'DM Sans'", size: 11 }, boxRadius: 4 } } } },
   });
@@ -948,8 +1153,8 @@ function renderDashboard() {
     document.getElementById('reminderList').innerHTML = '<p class="empty-note">Tidak ada yang akan expired dalam 3 hari</p>';
   } else {
     document.getElementById('reminderList').innerHTML = expiring.map(t => {
-      const c   = custs.find(c => c.id === t.custId);
-      const p   = pks.find(p => p.id === t.paketId);
+      const c = custs.find(c => c.id === t.custId);
+      const p = pks.find(p => p.id === t.paketId);
       const exp = new Date(t.expired); exp.setHours(0, 0, 0, 0);
       const diff = Math.round((exp - today2) / (1000 * 60 * 60 * 24));
       return `<div class="reminder-item">
@@ -968,18 +1173,18 @@ function renderDashboard() {
 
 // ─── TRANSAKSI ───
 function renderTransaksi() {
-  const search      = (document.getElementById('searchTransaksi') || {}).value || '';
+  const search = (document.getElementById('searchTransaksi') || {}).value || '';
   const filterBayar = (document.getElementById('filterStatusPembayaran') || {}).value || '';
   const filterBulan = (document.getElementById('filterBulanTransaksi') || {}).value || '';
-  const trxs  = DB.transaksis();
+  const trxs = DB.transaksis();
   const custs = DB.customers();
-  const pks   = DB.pakets();
+  const pks = DB.pakets();
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   let filtered = trxs.filter(t => {
     const c = custs.find(c => c.id === t.custId);
     const p = pks.find(p => p.id === t.paketId);
-    const q = ((c ? c.nama : '') + (p ? p.nama : '')).toLowerCase();
+    const q = ((t.invoice_number || '') + (c ? c.nama : '') + (p ? p.nama : '')).toLowerCase();
     if (search && !q.includes(search.toLowerCase())) return false;
     if (filterBayar && t.statusBayar !== filterBayar) return false;
     if (filterBulan && !(t.tgl && t.tgl.startsWith(filterBulan))) return false;
@@ -993,9 +1198,9 @@ function renderTransaksi() {
   }
 
   el.innerHTML = filtered.sort((a, b) => b.id - a.id).map(t => {
-    const c    = custs.find(c => c.id === t.custId);
-    const p    = pks.find(p => p.id === t.paketId);
-    const exp  = new Date(t.expired); exp.setHours(0, 0, 0, 0);
+    const c = custs.find(c => c.id === t.custId);
+    const p = pks.find(p => p.id === t.paketId);
+    const exp = new Date(t.expired); exp.setHours(0, 0, 0, 0);
     const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
     const isReminder = t.statusLangganan === 'aktif' && diff >= 0 && diff <= 3;
     const storeName = t.storeName || 'Nama Store';
@@ -1003,8 +1208,8 @@ function renderTransaksi() {
       <div class="item-card ${isReminder ? 'reminder-card' : ''}">
         <div class="item-card-header">
           <div>
-            <div class="item-card-title">${c ? c.nama : '<span style="color:var(--danger)">?</span>'}</div>
-            <div class="item-card-sub">${p ? p.nama : '?'} · ${t.tgl}</div>
+            <div class="item-card-title">${t.invoice_number || '-'}</div>
+            <div class="item-card-sub">(Customer: ${c ? c.nama : '<span style="color:var(--danger)">?</span>'}) · ${p ? p.nama : '?'} · ${t.tgl}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:15px;font-weight:800;color:var(--text);font-family:var(--mono);">${fmtShort(t.harga)}</div>
@@ -1037,9 +1242,9 @@ function renderTransaksi() {
 function renderLangganan() {
   const search = (document.getElementById('searchLangganan') || {}).value || '';
   const filterStatus = (document.getElementById('filterLanggananStatus') || {}).value || '';
-  const trxs  = DB.transaksis();
+  const trxs = DB.transaksis();
   const custs = DB.customers();
-  const pks   = DB.pakets();
+  const pks = DB.pakets();
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   let filtered = trxs.filter(t => {
@@ -1056,9 +1261,9 @@ function renderLangganan() {
   }
 
   el.innerHTML = filtered.sort((a, b) => new Date(a.expired) - new Date(b.expired)).map(t => {
-    const c    = custs.find(c => c.id === t.custId);
-    const p    = pks.find(p => p.id === t.paketId);
-    const exp  = new Date(t.expired); exp.setHours(0, 0, 0, 0);
+    const c = custs.find(c => c.id === t.custId);
+    const p = pks.find(p => p.id === t.paketId);
+    const exp = new Date(t.expired); exp.setHours(0, 0, 0, 0);
     const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
     const isReminder = t.statusLangganan === 'aktif' && diff >= 0 && diff <= 3;
     return `
@@ -1089,7 +1294,7 @@ function renderLangganan() {
 // ─── PAKET ───
 function renderPaket() {
   const pks = DB.pakets();
-  const el  = document.getElementById('paketList');
+  const el = document.getElementById('paketList');
   if (!pks.length) {
     el.innerHTML = `<div class="empty-state"><i class="bi bi-box-seam"></i><p>Belum ada paket</p></div>`;
     return;
@@ -1098,22 +1303,22 @@ function renderPaket() {
     <div class="item-card">
       <div class="item-card-header">
         <div>
-          <div class="item-card-title">${p.nama}</div>
-          <div class="item-card-sub">${p.durasi} hari</div>
+          <div class="item-card-title">${p?.nama || '-'}</div>
+          <div class="item-card-sub">${p?.durasi || 0} hari</div>
         </div>
-        <span class="badge ${p.status === 'aktif' ? 'badge-success' : 'badge-gray'}">${p.status}</span>
+        <span class="badge ${p?.status === 'aktif' ? 'badge-success' : 'badge-gray'}">${p?.status || '-'}</span>
       </div>
       <div class="item-card-body">
-        <span class="item-meta"><i class="bi bi-tag"></i>Jual: <strong>${fmtRupiah(p.harga)}</strong></span>
-        <span class="item-meta"><i class="bi bi-box-arrow-in-down"></i>HPP: <strong>${fmtRupiah(p.hpp)}</strong></span>
-        <span class="item-meta"><i class="bi bi-graph-up"></i>Margin: <strong style="color:var(--success);">${fmtRupiah(p.harga - p.hpp)}</strong></span>
+        <span class="item-meta"><i class="bi bi-tag"></i>Jual: <strong>${fmtRupiah(p?.harga || 0)}</strong></span>
+        <span class="item-meta"><i class="bi bi-box-arrow-in-down"></i>HPP: <strong>${fmtRupiah(p?.hpp || 0)}</strong></span>
+        <span class="item-meta"><i class="bi bi-graph-up"></i>Margin: <strong style="color:var(--success);">${fmtRupiah((p?.harga || 0) - (p?.hpp || 0))}</strong></span>
       </div>
       <div class="item-card-footer">
         <div></div>
         <div class="item-actions">
-          <button class="btn-sm" onclick="editPaket(${p.id})"><i class="bi bi-pencil"></i> Edit</button>
-          <button class="btn-sm ${p.status === 'aktif' ? 'success' : ''}" onclick="togglePaketStatus(${p.id})">
-            <i class="bi bi-toggle-${p.status === 'aktif' ? 'on' : 'off'}"></i> ${p.status === 'aktif' ? 'Aktif' : 'Nonaktif'}
+          <button class="btn-sm" onclick="editPaket(${p?.id || 'null'})"><i class="bi bi-pencil"></i> Edit</button>
+          <button class="btn-sm ${p?.status === 'aktif' ? 'success' : ''}" onclick="togglePaketStatus(${p?.id || 'null'})">
+            <i class="bi bi-toggle-${p?.status === 'aktif' ? 'on' : 'off'}"></i> ${p?.status === 'aktif' ? 'Aktif' : 'Nonaktif'}
           </button>
         </div>
       </div>
@@ -1122,7 +1327,7 @@ function renderPaket() {
 
 function openModalPaket(id = null) {
   const pks = DB.pakets();
-  const p   = id ? pks.find(pk => pk.id === id) : null;
+  const p = id ? pks.find(pk => pk.id === id) : null;
   const html = `
     ${fieldGroup('Nama Paket *', `<input type="text" class="field-input" id="pNama" value="${p ? p.nama : ''}" placeholder="cth: Netflix 1P">`)}
     <div class="row-2col">
@@ -1137,9 +1342,9 @@ function openModalPaket(id = null) {
 function editPaket(id) { openModalPaket(id); }
 
 function savePaket(id) {
-  const nama   = document.getElementById('pNama').value.trim();
-  const harga  = parseFloat(document.getElementById('pHarga').value);
-  const hpp    = parseFloat(document.getElementById('pHpp').value);
+  const nama = document.getElementById('pNama').value.trim();
+  const harga = parseFloat(document.getElementById('pHarga').value);
+  const hpp = parseFloat(document.getElementById('pHpp').value);
   const durasi = parseInt(document.getElementById('pDurasi').value);
   const status = document.getElementById('pStatus').value;
   if (!nama || !harga || !hpp) { showToast('Nama, Harga, HPP wajib diisi!', 'error'); return; }
@@ -1171,8 +1376,8 @@ function togglePaketStatus(id) {
 // ─── CUSTOMER ───
 function renderCustomer() {
   const search = (document.getElementById('searchCustomer') || {}).value || '';
-  const custs  = DB.customers();
-  const trxs   = DB.transaksis();
+  const custs = DB.customers();
+  const trxs = DB.transaksis();
   let filtered = custs.filter(c => !search || (c.nama + c.wa).toLowerCase().includes(search.toLowerCase()));
   const el = document.getElementById('customerList');
   if (!filtered.length) {
@@ -1207,8 +1412,8 @@ function renderCustomer() {
 
 function openModalCustomer(id = null) {
   const custs = DB.customers();
-  const c     = id ? custs.find(cu => cu.id === id) : null;
-  const html  = `
+  const c = id ? custs.find(cu => cu.id === id) : null;
+  const html = `
     ${fieldGroup('Nama *', `<input type="text" class="field-input" id="cNama" value="${c ? c.nama : ''}" placeholder="Nama customer">`)}
     ${fieldGroup('No. WhatsApp *', `<input type="text" class="field-input" id="cWa" value="${c ? c.wa : ''}" placeholder="628xxxxxxxxxx">`)}
     ${fieldGroup('Catatan', `<textarea class="field-input" id="cCatatan" rows="2" placeholder="Catatan opsional">${c ? c.catatan : ''}</textarea>`)}`;
@@ -1218,8 +1423,8 @@ function openModalCustomer(id = null) {
 function editCustomer(id) { openModalCustomer(id); }
 
 function saveCustomer(id) {
-  const nama   = document.getElementById('cNama').value.trim();
-  const wa     = document.getElementById('cWa').value.trim();
+  const nama = document.getElementById('cNama').value.trim();
+  const wa = document.getElementById('cWa').value.trim();
   const catatan = document.getElementById('cCatatan').value.trim();
   if (!nama || !wa) { showToast('Nama & WhatsApp wajib diisi!', 'error'); return; }
   const custs = DB.customers();
@@ -1239,8 +1444,8 @@ function saveCustomer(id) {
 // ─── SUPPLIER ───
 function renderSupplier() {
   const supps = DB.suppliers();
-  const trxs  = DB.transaksis();
-  const el    = document.getElementById('supplierList');
+  const trxs = DB.transaksis();
+  const el = document.getElementById('supplierList');
   if (!supps.length) {
     el.innerHTML = `<div class="empty-state"><i class="bi bi-truck"></i><p>Belum ada supplier</p></div>`;
     return;
@@ -1266,8 +1471,8 @@ function renderSupplier() {
 
 function openModalSupplier(id = null) {
   const supps = DB.suppliers();
-  const s     = id ? supps.find(sp => sp.id === id) : null;
-  const html  = `
+  const s = id ? supps.find(sp => sp.id === id) : null;
+  const html = `
     ${fieldGroup('Nama Supplier *', `<input type="text" class="field-input" id="sNama" value="${s ? s.nama : ''}" placeholder="Nama toko / supplier">`)}
     ${fieldGroup('Kontak *', `<input type="text" class="field-input" id="sKontak" value="${s ? s.kontak : ''}" placeholder="No. HP / Telegram / etc">`)}`;
   openModal(id ? 'Edit Supplier' : 'Tambah Supplier', html, `saveSupplier(${id || 'null'})`);
@@ -1276,7 +1481,7 @@ function openModalSupplier(id = null) {
 function editSupplier(id) { openModalSupplier(id); }
 
 function saveSupplier(id) {
-  const nama   = document.getElementById('sNama').value.trim();
+  const nama = document.getElementById('sNama').value.trim();
   const kontak = document.getElementById('sKontak').value.trim();
   if (!nama || !kontak) { showToast('Semua field wajib diisi!', 'error'); return; }
   const supps = DB.suppliers();
@@ -1298,27 +1503,27 @@ let _laporanChart, _laporanPaketChart;
 
 function renderLaporan() {
   const periode = (document.getElementById('filterLaporanPeriode') || {}).value || '';
-  const trxs    = DB.transaksis();
-  const custs   = DB.customers();
-  const pks     = DB.pakets();
+  const trxs = DB.transaksis();
+  const custs = DB.customers();
+  const pks = DB.pakets();
   const filtered = periode ? trxs.filter(t => t.tgl && t.tgl.startsWith(periode)) : trxs;
 
-  const totalOmzet  = filtered.reduce((a, t) => a + t.harga,  0);
+  const totalOmzet = filtered.reduce((a, t) => a + t.harga, 0);
   const totalProfit = filtered.reduce((a, t) => a + t.profit, 0);
-  const totalHpp    = filtered.reduce((a, t) => a + t.hpp,    0);
+  const totalHpp = filtered.reduce((a, t) => a + t.hpp, 0);
 
   document.getElementById('laporanStats').innerHTML = [
     { label: 'Total Transaksi', value: filtered.length, sub: '' },
-    { label: 'Total Omzet',     value: fmtShort(totalOmzet), sub: '' },
-    { label: 'Total HPP',       value: fmtShort(totalHpp),   sub: '' },
-    { label: 'Laba Kotor',      value: fmtShort(totalProfit), sub: '', accent: true },
+    { label: 'Total Omzet', value: fmtShort(totalOmzet), sub: '' },
+    { label: 'Total HPP', value: fmtShort(totalHpp), sub: '' },
+    { label: 'Laba Kotor', value: fmtShort(totalProfit), sub: '', accent: true },
   ].map(s => `
     <div class="stat-card">
       <div class="stat-label">${s.label}</div>
       <div class="stat-value" ${s.accent ? 'style="color:var(--success)"' : ''}>${s.value}</div>
     </div>`).join('');
 
-  const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const months = [], omzetArr = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -1349,7 +1554,7 @@ function renderLaporan() {
     type: 'doughnut',
     data: {
       labels: pkNames.length ? pkNames : ['Belum ada'],
-      datasets: [{ data: pkVals.length ? pkVals : [1], backgroundColor: ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6'], borderWidth: 0 }],
+      datasets: [{ data: pkVals.length ? pkVals : [1], backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'], borderWidth: 0 }],
     },
     options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: "'DM Sans'", size: 11 }, boxRadius: 4 } } } },
   });
@@ -1386,27 +1591,27 @@ function renderLaporan() {
 }
 
 function exportLaporan() {
-  const trxs  = DB.transaksis();
+  const trxs = DB.transaksis();
   const custs = DB.customers();
-  const pks   = DB.pakets();
+  const pks = DB.pakets();
   let csv = 'Tanggal,Customer,Paket,Harga Jual,HPP,Profit,Status Bayar,Nama Store,Keterangan,Catatan\n';
   trxs.forEach(t => {
     const c = custs.find(c => c.id === t.custId);
     const p = pks.find(p => p.id === t.paketId);
-    csv += `${t.tgl},"${c ? c.nama : '?'}","${p ? p.nama : '?'}",${t.harga},${t.hpp},${t.profit},${t.statusBayar},"${(t.storeName || 'Nama Store').replace(/"/g,'""')}","${(t.customerNotes || '').replace(/"/g,'""')}","${(t.catatan || '').replace(/"/g, '""')}"\n`;
+    csv += `${t.tgl},"${c ? c.nama : '?'}","${p ? p.nama : '?'}",${t.harga},${t.hpp},${t.profit},${t.statusBayar},"${(t.storeName || 'Nama Store').replace(/"/g, '""')}","${(t.customerNotes || '').replace(/"/g, '""')}","${(t.catatan || '').replace(/"/g, '""')}"\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a'); a.href = url; a.download = 'laporan_subflow.csv'; a.click();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'laporan_subflow.csv'; a.click();
   showToast('Export CSV berhasil!');
 }
 
 // ─── BIAYA ───
 function renderBiaya() {
-  const biayas    = DB.biayas();
+  const biayas = DB.biayas();
   const todayMonth = new Date().toISOString().substring(0, 7);
   const monthTotal = biayas.filter(b => b.tgl && b.tgl.startsWith(todayMonth)).reduce((a, b) => a + b.nominal, 0);
-  const allTotal   = biayas.reduce((a, b) => a + b.nominal, 0);
+  const allTotal = biayas.reduce((a, b) => a + b.nominal, 0);
 
   document.getElementById('biayaStats').innerHTML = `
     <div class="stat-card">
@@ -1448,12 +1653,12 @@ function openModalBiaya() {
 }
 
 function saveBiaya() {
-  const nama    = document.getElementById('bNama').value.trim();
+  const nama = document.getElementById('bNama').value.trim();
   const nominal = parseFloat(document.getElementById('bNominal').value);
-  const tgl     = document.getElementById('bTgl').value;
+  const tgl = document.getElementById('bTgl').value;
   if (!nama || !nominal || !tgl) { showToast('Semua field wajib diisi!', 'error'); return; }
   const biayas = DB.biayas();
-  const newId  = biayas.length ? Math.max(...biayas.map(b => b.id)) + 1 : 1;
+  const newId = biayas.length ? Math.max(...biayas.map(b => b.id)) + 1 : 1;
   biayas.push({ id: newId, nama, nominal, tgl });
   DB.saveBiayas(biayas);
   closeModal();
@@ -1476,29 +1681,29 @@ function renderProfit() {
   const pfEl = document.getElementById('filterProfitBulan');
   if (pfEl) pfEl.value = filterBulan;
 
-  const trxs   = DB.transaksis();
+  const trxs = DB.transaksis();
   const biayas = DB.biayas();
-  const mTrx   = trxs.filter(t => t.tgl && t.tgl.startsWith(filterBulan));
+  const mTrx = trxs.filter(t => t.tgl && t.tgl.startsWith(filterBulan));
   const mBiaya = biayas.filter(b => b.tgl && b.tgl.startsWith(filterBulan));
 
-  const totalPenjualan = mTrx.reduce((a, t) => a + t.harga,    0);
-  const totalHpp       = mTrx.reduce((a, t) => a + t.hpp,      0);
-  const labaKotor      = mTrx.reduce((a, t) => a + t.profit,   0);
-  const totalBiaya     = mBiaya.reduce((a, b) => a + b.nominal, 0);
-  const labaBersih     = labaKotor - totalBiaya;
+  const totalPenjualan = mTrx.reduce((a, t) => a + t.harga, 0);
+  const totalHpp = mTrx.reduce((a, t) => a + t.hpp, 0);
+  const labaKotor = mTrx.reduce((a, t) => a + t.profit, 0);
+  const totalBiaya = mBiaya.reduce((a, b) => a + b.nominal, 0);
+  const labaBersih = labaKotor - totalBiaya;
 
   document.getElementById('profitStats').innerHTML = [
     { label: 'Total Penjualan', value: fmtShort(totalPenjualan) },
-    { label: 'Total HPP',       value: fmtShort(totalHpp) },
-    { label: 'Laba Kotor',      value: fmtShort(labaKotor), accent: 'success' },
-    { label: 'Biaya Ops',       value: fmtShort(totalBiaya), accent: 'danger' },
+    { label: 'Total HPP', value: fmtShort(totalHpp) },
+    { label: 'Laba Kotor', value: fmtShort(labaKotor), accent: 'success' },
+    { label: 'Biaya Ops', value: fmtShort(totalBiaya), accent: 'danger' },
   ].map(s => `
     <div class="stat-card">
       <div class="stat-label">${s.label}</div>
       <div class="stat-value" ${s.accent ? `style="color:var(--${s.accent})"` : ''}>${s.value}</div>
     </div>`).join('');
 
-  const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const months = [], labaArr = [], biayaArr = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -1514,8 +1719,8 @@ function renderProfit() {
     data: {
       labels: months,
       datasets: [
-        { label: 'Laba Kotor', data: labaArr,  backgroundColor: 'rgba(16,185,129,0.18)', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 },
-        { label: 'Biaya',      data: biayaArr, backgroundColor: 'rgba(239,68,68,0.15)',  borderColor: '#ef4444', borderWidth: 2, borderRadius: 6 },
+        { label: 'Laba Kotor', data: labaArr, backgroundColor: 'rgba(16,185,129,0.18)', borderColor: '#10b981', borderWidth: 2, borderRadius: 6 },
+        { label: 'Biaya', data: biayaArr, backgroundColor: 'rgba(239,68,68,0.15)', borderColor: '#ef4444', borderWidth: 2, borderRadius: 6 },
       ],
     },
     options: {
@@ -1526,11 +1731,11 @@ function renderProfit() {
   });
 
   document.getElementById('profitDetail').innerHTML = [
-    ['Total Penjualan',  totalPenjualan, 'var(--text)'],
-    ['Total HPP',        totalHpp,       'var(--danger)'],
-    ['Laba Kotor',       labaKotor,      'var(--success)'],
-    ['Biaya Operasional',totalBiaya,     'var(--danger)'],
-    ['🎯 Laba Bersih',  labaBersih,     labaBersih >= 0 ? 'var(--success)' : 'var(--danger)'],
+    ['Total Penjualan', totalPenjualan, 'var(--text)'],
+    ['Total HPP', totalHpp, 'var(--danger)'],
+    ['Laba Kotor', labaKotor, 'var(--success)'],
+    ['Biaya Operasional', totalBiaya, 'var(--danger)'],
+    ['🎯 Laba Bersih', labaBersih, labaBersih >= 0 ? 'var(--success)' : 'var(--danger)'],
   ].map(([l, v, c]) => `
     <div class="profit-row">
       <span>${l}</span>
@@ -1542,7 +1747,7 @@ function renderProfit() {
 function toggleAccordion(btn) {
   const content = btn.nextElementSibling;
   const isActive = btn.classList.contains('active');
-  
+
   document.querySelectorAll('.accordion-btn').forEach(b => {
     b.classList.remove('active');
     b.nextElementSibling.classList.remove('active');
@@ -1557,7 +1762,7 @@ function toggleAccordion(btn) {
 function savePreferences() {
   const notifLangganan = document.getElementById('prefNotifLangganan') ? document.getElementById('prefNotifLangganan').checked : true;
   const notifPaket = document.getElementById('prefNotifPaket') ? document.getElementById('prefNotifPaket').checked : true;
-  
+
   DB.set('prefNotifLangganan', notifLangganan);
   DB.set('prefNotifPaket', notifPaket);
   showToast('Preferensi disimpan');
@@ -1566,7 +1771,7 @@ function savePreferences() {
 function loadPreferences() {
   const notifLangganan = DB.get('prefNotifLangganan');
   const notifPaket = DB.get('prefNotifPaket');
-  
+
   if (notifLangganan !== null && document.getElementById('prefNotifLangganan')) {
     document.getElementById('prefNotifLangganan').checked = notifLangganan;
   }
