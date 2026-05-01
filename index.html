@@ -128,7 +128,7 @@
       } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
     };
 
-    window.openEditStoreName = function() {
+    window.openEditStoreName = function () {
       const currentName = document.getElementById('lainnyaStoreName').textContent;
       const html = `
         <div class="field-group">
@@ -139,12 +139,76 @@
       openModal('Ubah Nama Store', html, 'saveStoreName()');
     };
 
-    window.promptUbahEmail = async function() {
+    window.saveOwnerName = async function () {
+      const name = document.getElementById('editOwnerName').value.trim();
+      const user = auth.currentUser;
+      if (!user) return;
+      if (!name) return showToast('Nama Pemilik tidak boleh kosong!', 'error');
+      try {
+        await setDoc(doc(db, 'users', user.uid), { ownerName: name }, { merge: true });
+        showToast('Nama Pemilik berhasil diperbarui!');
+        closeModal();
+      } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
+    };
+
+    window.openEditOwnerName = function () {
+      const currentName = document.getElementById('lainnyaOwnerName').textContent;
+      const html = `
+        <div class="field-group">
+          <label>Nama Pemilik</label>
+          <input type="text" class="field-input" id="editOwnerName" value="${currentName !== 'Nama Pemilik' ? currentName : ''}" placeholder="Masukkan nama pemilik store">
+        </div>
+      `;
+      openModal('Ubah Nama Pemilik', html, 'saveOwnerName()');
+    };
+
+    window.saveStoreWhatsApp = async function () {
+      let rawWa = document.getElementById('editStoreWa').value.trim();
+      const user = auth.currentUser;
+      if (!user) return;
+      if (!rawWa) return showToast('Nomor WhatsApp tidak boleh kosong!', 'error');
+      
+      // Remove non-numeric
+      rawWa = rawWa.replace(/\D/g, '');
+      if (rawWa.startsWith('0')) rawWa = '62' + rawWa.substring(1);
+      if (rawWa.length < 10) return showToast('Nomor WhatsApp tidak valid!', 'error');
+
+      try {
+        await setDoc(doc(db, 'users', user.uid), { storeWhatsapp: rawWa }, { merge: true });
+        showToast('Nomor WhatsApp berhasil diperbarui!');
+        closeModal();
+      } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
+    };
+
+    window.openEditStoreWhatsApp = function () {
+      const currentWa = window.currentStoreWa || '';
+      const html = `
+        <div class="field-group">
+          <label>Nomor WhatsApp Store</label>
+          <input type="tel" class="field-input" id="editStoreWa" value="${currentWa}" placeholder="081234567890">
+          <p style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Nomor ini akan menjadi nomor tujuan Test WA dan sinkron dengan konfigurasi WA Anda.</p>
+        </div>
+      `;
+      openModal('Ubah Nomor WhatsApp', html, 'saveStoreWhatsApp()');
+    };
+
+    window.copyUid = function() {
+       const user = auth.currentUser;
+       if(user && user.uid) {
+         navigator.clipboard.writeText(user.uid).then(() => {
+           showToast('ID Akun berhasil disalin!');
+         }).catch(() => {
+           showToast('Gagal menyalin ID', 'error');
+         });
+       }
+    };
+
+    window.promptUbahEmail = async function () {
       const user = auth.currentUser;
       if (!user) return;
       const newEmail = prompt('Masukkan email baru:');
       if (!newEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(newEmail)) {
-        if(newEmail) showToast('Format email tidak valid!', 'error');
+        if (newEmail) showToast('Format email tidak valid!', 'error');
         return;
       }
       try {
@@ -157,7 +221,7 @@
       }
     };
 
-    window.promptUbahPassword = async function() {
+    window.promptUbahPassword = async function () {
       const user = auth.currentUser;
       if (!user) return;
       const newPass = prompt('Masukkan password baru (min 6 karakter):');
@@ -171,7 +235,7 @@
       }
     };
 
-    window.backupData = function() {
+    window.backupData = function () {
       const data = {
         pakets: DB.pakets(),
         customers: DB.customers(),
@@ -185,21 +249,21 @@
       showToast('Backup berhasil diunduh!');
     };
 
-    window.exportDataAll = function() {
+    window.exportDataAll = function () {
       exportLaporan(); // Gunakan fungsi export yang sudah ada
     };
 
-    window.doLogoutAll = async function() {
-      if(!confirm('Logout dari semua perangkat? Ini akan me-reset sesi kamu.')) return;
+    window.doLogoutAll = async function () {
+      if (!confirm('Logout dari semua perangkat? Ini akan me-reset sesi kamu.')) return;
       await signOut(auth);
     };
 
-    window.confirmHapusAkun = async function() {
+    window.confirmHapusAkun = async function () {
       const p = prompt('Ketik "HAPUS" untuk menghapus akun permanen:');
       if (p === 'HAPUS') {
         try {
           const user = auth.currentUser;
-          if(user) await user.delete();
+          if (user) await user.delete();
           showToast('Akun berhasil dihapus.');
         } catch (e) {
           showToast(fbErrMsg(e.code), 'error');
@@ -207,10 +271,10 @@
       }
     };
 
-    window.applyProfileAvatar = function(name) {
+    window.applyProfileAvatar = function (name) {
       const initial = name ? name.charAt(0).toUpperCase() : 'A';
       const avatar = document.getElementById('lainnyaAvatar');
-      if(avatar) avatar.textContent = initial;
+      if (avatar) avatar.textContent = initial;
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -222,44 +286,74 @@
       }
 
       if (user) {
-        let joinDate = user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
-        
+        let joinDate = user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+
         // Listen to User Profile
         window._unsubUser = onSnapshot(doc(db, 'users', user.uid), (snap) => {
           let storeName = 'Nama Store';
+          let ownerName = 'Nama Pemilik';
+          let storeWa = 'Nomor WhatsApp Store belum diatur';
+
           if (snap.exists()) {
             const d = snap.data();
             storeName = d.storeName || d.name || storeName;
-            if(d.createdAt) {
-               const cDate = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
-               joinDate = cDate.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+            ownerName = d.ownerName || ownerName;
+            storeWa = d.storeWhatsapp || storeWa;
+            
+            if (d.createdAt) {
+              const cDate = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+              joinDate = cDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             }
-            if(!d.seeded) {
+            if (!d.seeded) {
               seedDemoData();
               setDoc(doc(db, 'users', user.uid), { ...d, seeded: true }, { merge: true });
             }
           }
-          
+
           window.currentStoreName = storeName;
-          const lname = document.getElementById('lainnyaStoreName'); if(lname) lname.textContent = storeName;
-          const lemail = document.getElementById('lainnyaEmail'); if(lemail) lemail.textContent = user.email;
-          const ljoin = document.getElementById('lainnyaJoinDate'); if(ljoin) ljoin.textContent = joinDate;
+          window.currentStoreWa = storeWa !== 'Nomor WhatsApp Store belum diatur' ? storeWa : null;
+
+          const lname = document.getElementById('lainnyaStoreName'); if (lname) lname.textContent = storeName;
+          const lOwner = document.getElementById('lainnyaOwnerName'); if (lOwner) lOwner.textContent = ownerName;
+          const lWa = document.getElementById('lainnyaStoreWa'); if (lWa) lWa.textContent = storeWa;
+          const lWaTop = document.getElementById('lainnyaStoreWaTop'); if (lWaTop) lWaTop.textContent = storeWa;
+          const lemail = document.getElementById('lainnyaEmail'); if (lemail) lemail.textContent = user.email;
+          const ljoin = document.getElementById('lainnyaJoinDate'); if (ljoin) ljoin.textContent = joinDate;
+          
+          const lUid = document.getElementById('lainnyaUid'); if (lUid) lUid.textContent = user.uid;
+          const lLast = document.getElementById('lainnyaLastLogin'); 
+          if (lLast) lLast.textContent = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleString('id-ID') : '-';
+          
+          const lWaStatus = document.getElementById('lainnyaWaStatus');
+          if (lWaStatus) {
+             if (window.WhatsAppService && window.WhatsAppService.API_TOKEN === 'TOKEN_ANDA_DISINI') {
+               lWaStatus.textContent = 'Mode Simulasi';
+               lWaStatus.style.color = 'var(--warning)';
+             } else if (!window.currentStoreWa) {
+               lWaStatus.textContent = 'Belum Terhubung';
+               lWaStatus.style.color = 'var(--danger)';
+             } else {
+               lWaStatus.textContent = 'Terhubung';
+               lWaStatus.style.color = 'var(--success)';
+             }
+          }
+
           applyProfileAvatar(storeName);
         });
 
         // Listen to Customers
         window._unsubCustomers = onSnapshot(doc(db, 'customers', user.uid), (snap) => {
           const items = snap.exists() ? (snap.data().items || []) : [];
-          const lCust = document.getElementById('lainnyaTotalCustomer'); 
-          if(lCust) lCust.textContent = items.length;
+          const lCust = document.getElementById('lainnyaTotalCustomer');
+          if (lCust) lCust.textContent = items.length;
         });
 
         // Listen to Transaksis
         window._unsubTransaksis = onSnapshot(doc(db, 'transaksis', user.uid), (snap) => {
           const items = snap.exists() ? (snap.data().items || []) : [];
-          
-          const lTrx = document.getElementById('lainnyaTotalTransaksi'); 
-          if(lTrx) lTrx.textContent = items.length;
+
+          const lTrx = document.getElementById('lainnyaTotalTransaksi');
+          if (lTrx) lTrx.textContent = items.length;
 
           let langgananAktif = 0;
           let totalPendapatan = 0;
@@ -278,21 +372,18 @@
               langgananAktif++;
             }
 
-            // Total Pendapatan Bulan Berjalan
-            const trxDate = t.tgl || t.date ? new Date(t.tgl || t.date) : null;
-            if (trxDate && trxDate >= startMonth && trxDate <= endMonth) {
-              const profit = Number(t.netProfit ?? t.profit ?? ((t.total || t.harga || 0) - (t.cost || t.hpp || 0)));
-              if (!isNaN(profit)) {
-                totalPendapatan += profit;
-              }
+            // Total Pendapatan (Sepanjang Masa)
+            const profit = Number(t.netProfit ?? t.profit ?? ((t.total || t.harga || 0) - (t.cost || t.hpp || 0)));
+            if (!isNaN(profit)) {
+              totalPendapatan += profit;
             }
           });
 
-          const lAktif = document.getElementById('lainnyaLanggananAktif'); 
-          if(lAktif) lAktif.textContent = langgananAktif;
+          const lAktif = document.getElementById('lainnyaLanggananAktif');
+          if (lAktif) lAktif.textContent = langgananAktif;
 
-          const lPendapatan = document.getElementById('lainnyaTotalPendapatan'); 
-          if(lPendapatan) {
+          const lPendapatan = document.getElementById('lainnyaTotalPendapatan');
+          if (lPendapatan) {
             lPendapatan.textContent = new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
@@ -311,9 +402,9 @@
 
         showPage('dashboard');
       } else {
-        if(window._unsubUser) window._unsubUser();
-        if(window._unsubCustomers) window._unsubCustomers();
-        if(window._unsubTransaksis) window._unsubTransaksis();
+        if (window._unsubUser) window._unsubUser();
+        if (window._unsubCustomers) window._unsubCustomers();
+        if (window._unsubTransaksis) window._unsubTransaksis();
         DB.clearUID();
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app-screen').style.display = 'none';
@@ -639,8 +730,72 @@
             </div>
           </div>
 
-          <!-- SECTION AKUN -->
-          <div class="section-title">Akun</div>
+          <!-- MENU NAVIGASI UTAMA -->
+          <div class="lainnya-card" style="padding:0; overflow:hidden;">
+            <div class="setting-list">
+              <div class="setting-item" onclick="showPage('lainnya-akun')">
+                <div class="setting-icon"><i class="bi bi-person"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Akun</div>
+                  <div class="setting-sub">Kelola nama store dan informasi akun</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-statistik')">
+                <div class="setting-icon"><i class="bi bi-bar-chart-line"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Statistik</div>
+                  <div class="setting-sub">Ringkasan performa bisnis Anda</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-preferensi')">
+                <div class="setting-icon"><i class="bi bi-sliders"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Preferensi Aplikasi</div>
+                  <div class="setting-sub">Atur tema, warna, dan tampilan</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-keamanan')">
+                <div class="setting-icon"><i class="bi bi-shield-lock"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Keamanan & Privasi</div>
+                  <div class="setting-sub">Kelola keamanan akun dan data</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-notifikasi')">
+                <div class="setting-icon"><i class="bi bi-bell"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Notifikasi</div>
+                  <div class="setting-sub">Atur pengingat dan notifikasi otomatis</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-bantuan')">
+                <div class="setting-icon"><i class="bi bi-question-circle"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Bantuan</div>
+                  <div class="setting-sub">Panduan penggunaan seluruh fitur</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+              <div class="setting-item" onclick="showPage('lainnya-tentang')">
+                <div class="setting-icon"><i class="bi bi-info-circle"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Tentang Aplikasi</div>
+                  <div class="setting-sub">Informasi versi dan developer</div>
+                </div>
+                <i class="bi bi-chevron-right setting-chevron"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPAGES LAINNYA -->
+
+        <div class="page-section" id="page-lainnya-akun">
           <div class="lainnya-card">
             <div class="akun-overview">
               <div class="akun-avatar" id="lainnyaAvatar">A</div>
@@ -650,16 +805,66 @@
                   <button class="btn-edit-icon" onclick="openEditStoreName()"><i class="bi bi-pencil-fill"></i></button>
                 </div>
                 <div class="akun-email" id="lainnyaEmail">–</div>
+                <div class="akun-wa" style="font-size: 13px; color: var(--text-2); margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                  <i class="bi bi-whatsapp" style="color: #25D366;"></i>
+                  <span id="lainnyaStoreWaTop">Nomor WhatsApp Store belum diatur</span>
+                  <button class="btn-edit-icon" onclick="openEditStoreWhatsApp()"><i class="bi bi-pencil-fill"></i></button>
+                </div>
               </div>
             </div>
             <div class="setting-list" style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px;">
-              <div class="setting-item no-hover">
-                <div class="setting-icon"><i class="bi bi-calendar-check"></i></div>
+              <div class="setting-item" onclick="openEditOwnerName()">
+                <div class="setting-icon"><i class="bi bi-person-badge"></i></div>
                 <div class="setting-text">
-                  <div class="setting-title">Tanggal Bergabung</div>
-                  <div class="setting-sub" id="lainnyaJoinDate">–</div>
+                  <div class="setting-title">Nama Pemilik</div>
+                  <div class="setting-sub" id="lainnyaOwnerName">Nama Pemilik</div>
+                </div>
+                <i class="bi bi-pencil-fill setting-chevron" style="font-size: 14px; opacity: 0.5;"></i>
+              </div>
+              <div class="setting-item" onclick="openEditStoreWhatsApp()">
+                <div class="setting-icon"><i class="bi bi-whatsapp"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Nomor WhatsApp Store</div>
+                  <div class="setting-sub" id="lainnyaStoreWa">Nomor WhatsApp Store belum diatur</div>
+                </div>
+                <i class="bi bi-pencil-fill setting-chevron" style="font-size: 14px; opacity: 0.5;"></i>
+              </div>
+              <div class="setting-item no-hover">
+                <div class="setting-icon"><i class="bi bi-globe"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Zona Waktu</div>
+                  <div class="setting-sub">Asia/Jakarta</div>
                 </div>
               </div>
+              <div class="setting-item" onclick="copyUid()">
+                <div class="setting-icon"><i class="bi bi-fingerprint"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">ID Akun</div>
+                  <div class="setting-sub" id="lainnyaUid" style="font-family: var(--mono); font-size: 11px;">–</div>
+                </div>
+                <i class="bi bi-clipboard setting-chevron"></i>
+              </div>
+              <div class="setting-item no-hover">
+                <div class="setting-icon"><i class="bi bi-link"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Status Koneksi WhatsApp</div>
+                  <div class="setting-sub" id="lainnyaWaStatus">Belum Terhubung</div>
+                </div>
+              </div>
+              <div class="setting-item no-hover">
+                <div class="setting-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Tanggal Login Terakhir</div>
+                  <div class="setting-sub" id="lainnyaLastLogin">–</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-section" id="page-lainnya-statistik">
+          <div class="lainnya-card">
+            <div class="setting-list">
               <div class="setting-item no-hover">
                 <div class="setting-icon"><i class="bi bi-people"></i></div>
                 <div class="setting-text">
@@ -690,9 +895,10 @@
               </div>
             </div>
           </div>
+        </div>
+        </div>
 
-          <!-- SECTION PREFERENSI APLIKASI -->
-          <div class="section-title">Preferensi Aplikasi</div>
+        <div class="page-section" id="page-lainnya-preferensi">
           <div class="lainnya-card">
             <div class="setting-list">
               <div class="setting-item" onclick="toggleTheme()">
@@ -705,9 +911,9 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- SECTION KEAMANAN & PRIVASI -->
-          <div class="section-title">Keamanan & Privasi</div>
+        <div class="page-section" id="page-lainnya-keamanan">
           <div class="lainnya-card">
             <div class="setting-list">
               <div class="setting-item" onclick="promptUbahEmail()">
@@ -765,12 +971,13 @@
               </div>
             </div>
             <div class="security-info">
-              <i class="bi bi-shield-check"></i> Data disimpan aman dengan Firebase. Koneksi terenkripsi. Data pelanggan tidak dibagikan.
+              <i class="bi bi-shield-check"></i> Data disimpan aman dengan Firebase. Koneksi terenkripsi. Data pelanggan
+              tidak dibagikan.
             </div>
           </div>
+        </div>
 
-          <!-- SECTION NOTIFIKASI -->
-          <div class="section-title">Notifikasi</div>
+        <div class="page-section" id="page-lainnya-notifikasi">
           <div class="lainnya-card">
             <div class="setting-list">
               <div class="setting-item no-hover">
@@ -795,9 +1002,9 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- SECTION BANTUAN -->
-          <div class="section-title">Bantuan</div>
+        <div class="page-section" id="page-lainnya-bantuan">
           <div class="lainnya-card" style="padding: 0;">
             <div class="accordion" id="helpAccordion">
               <div class="accordion-item">
@@ -806,7 +1013,8 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Melihat ringkasan omzet, laba kotor, jumlah langganan aktif, serta grafik penjualan bulan ini. Terdapat juga pengingat H-3 untuk langganan yang akan segera expired.</p>
+                  <p>Melihat ringkasan omzet, laba kotor, jumlah langganan aktif, serta grafik penjualan bulan ini.
+                    Terdapat juga pengingat H-3 untuk langganan yang akan segera expired.</p>
                 </div>
               </div>
               <div class="accordion-item">
@@ -815,7 +1023,8 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Mencatat setiap penjualan akun/langganan. Di sini kamu bisa membuat invoice otomatis (JPG) yang siap dikirimkan ke pelanggan.</p>
+                  <p>Mencatat setiap penjualan akun/langganan. Di sini kamu bisa membuat invoice otomatis (JPG) yang
+                    siap dikirimkan ke pelanggan.</p>
                 </div>
               </div>
               <div class="accordion-item">
@@ -824,7 +1033,8 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Menu cepat untuk melihat status aktif atau expired semua pelanggan, serta akses langsung untuk memperpanjang langganan mereka.</p>
+                  <p>Menu cepat untuk melihat status aktif atau expired semua pelanggan, serta akses langsung untuk
+                    memperpanjang langganan mereka.</p>
                 </div>
               </div>
               <div class="accordion-item">
@@ -833,7 +1043,8 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Manajemen master data produk/aplikasi premium yang kamu jual. Tentukan harga modal (HPP) dan harga jual untuk menghitung profit otomatis.</p>
+                  <p>Manajemen master data produk/aplikasi premium yang kamu jual. Tentukan harga modal (HPP) dan harga
+                    jual untuk menghitung profit otomatis.</p>
                 </div>
               </div>
               <div class="accordion-item">
@@ -842,7 +1053,8 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Kelola daftar kontak pelanggan yang membeli produkmu, serta daftar toko/pihak ketiga tempat kamu mendapatkan pasokan akun (Supplier).</p>
+                  <p>Kelola daftar kontak pelanggan yang membeli produkmu, serta daftar toko/pihak ketiga tempat kamu
+                    mendapatkan pasokan akun (Supplier).</p>
                 </div>
               </div>
               <div class="accordion-item">
@@ -851,26 +1063,28 @@
                   <i class="bi bi-chevron-down accordion-icon"></i>
                 </button>
                 <div class="accordion-content">
-                  <p>Melihat performa bisnismu secara menyeluruh. Cek omzet harian/bulanan di menu Laporan, lalu pantau laba bersih (Laba Kotor - Biaya Ops) di menu Profit.</p>
+                  <p>Melihat performa bisnismu secara menyeluruh. Cek omzet harian/bulanan di menu Laporan, lalu pantau
+                    laba bersih (Laba Kotor - Biaya Ops) di menu Profit.</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- SECTION TENTANG APLIKASI -->
-          <div class="section-title">Tentang Aplikasi</div>
+        <div class="page-section" id="page-lainnya-tentang">
           <div class="lainnya-card text-center" style="padding: 24px 16px;">
-            <img src="icons/logo subflow 192x192.png" alt="Subflow Logo" style="width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; box-shadow: var(--shadow);">
+            <img src="icons/logo subflow 192x192.png" alt="Subflow Logo"
+              style="width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; box-shadow: var(--shadow);">
             <div style="font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.02em;">Subflow</div>
             <div style="font-size: 13px; color: var(--text-3); margin-top: 4px;">Versi 2.0.1</div>
-            <div style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.5;">Platform manajemen langganan akun digital terbaik, membantu mengelola pelanggan, invoice, dan keuangan bisnismu.</div>
-            
+            <div style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.5;">Platform manajemen
+              langganan akun digital terbaik, membantu mengelola pelanggan, invoice, dan keuangan bisnismu.</div>
+
             <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
               <a href="#" class="btn-sm"><i class="bi bi-globe"></i> Website</a>
-              <a href="mailto:support@subflow.com" class="btn-sm"><i class="bi bi-bug"></i> Lapor Bug</a>
+              <a href="mailto:subflow27@gmail.com" class="btn-sm"><i class="bi bi-bug"></i> Lapor Bug</a>
             </div>
           </div>
-
           <p class="copy-note" style="margin-top: 2rem;">© 2026 Subflow<br>dibuat oleh Aswin Maulana</p>
         </div>
 
