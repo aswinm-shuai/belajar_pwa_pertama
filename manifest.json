@@ -1,10 +1,9 @@
 {
-  "id": "/belajar_pwa_pertama/",
   "name": "Subflow",
   "short_name": "Subflow",
   "description": "Aplikasi Manajemen Customer Langganan Aplikasi Premium",
-  "start_url": "/belajar_pwa_pertama/index.html",
-  "scope": "/belajar_pwa_pertama/",
+  "start_url": "index.html",
+  "scope": ".",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#4F46E5",
@@ -14,51 +13,33 @@
   "dir": "ltr",
   "categories": ["productivity", "utilities", "business", "finance"],
   "handle_links": "preferred",
-
   "prefer_related_applications": false,
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://subflow-web-8070c.web.app/belajar_pwa_pertama/manifest.json",
+      "url": "https://subflow-web-8070c.web.app/manifest.json",
       "id": "com.subflow.app"
     }
   ],
-
   "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
-
   "launch_handler": {
     "client_mode": "focus-existing"
   },
-
   "edge_side_panel": {
     "preferred_width": 400
   },
-
-  "scope_extensions": [
-    {
-      "origin": "https://subflow-web-8070c.web.app"
-    }
-  ],
-
   "widgets": [
     {
       "name": "Subflow Widget",
       "description": "Ringkasan langganan aktif kamu",
       "tag": "subflow-summary",
       "template": "subflow-widget",
-      "ms_ac_template": "/belajar_pwa_pertama/widgets/widget-template.json",
-      "data": "/belajar_pwa_pertama/widgets/widget-data.json",
+      "ms_ac_template": "widgets/widget-template.json",
+      "data": "widgets/widget-data.json",
       "type": "application/json",
-      "screenshots": [
-        {
-          "src": "/belajar_pwa_pertama/icons/screenshot dashbord.png",
-          "sizes": "1080x1920",
-          "label": "Widget Dashboard Subflow"
-        }
-      ],
       "icons": [
         {
-          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "src": "icons/logo subflow 192x192.png",
           "sizes": "192x192"
         }
       ],
@@ -66,38 +47,35 @@
       "update": 3600
     }
   ],
-
   "note_taking": {
-    "new_note_url": "/belajar_pwa_pertama/index.html#add-customer"
+    "new_note_url": "index.html#add-customer"
   },
-
   "icons": [
     {
-      "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+      "src": "icons/logo subflow 192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/belajar_pwa_pertama/icons/logo subflow 512x512.png",
+      "src": "icons/logo subflow 512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+      "src": "icons/logo subflow 192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/belajar_pwa_pertama/icons/logo subflow 512x512.png",
+      "src": "icons/logo subflow 512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-
   "screenshots": [
     {
       "src": "icons/Screenshot 2026-04-22 131007.png",
@@ -107,23 +85,22 @@
       "label": "Dashboard Subflow Desktop"
     },
     {
-      "src": "/belajar_pwa_pertama/icons/screenshot dashbord.png",
+      "src": "icons/screenshot dashbord.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Dashboard Subflow Mobile"
     }
   ],
-
   "shortcuts": [
     {
       "name": "Buka Beranda",
       "short_name": "Home",
       "description": "Kembali ke halaman utama Subflow",
-      "url": "/belajar_pwa_pertama/index.html",
+      "url": "index.html",
       "icons": [
         {
-          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "src": "icons/logo subflow 192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -133,41 +110,39 @@
       "name": "Tambah Transaksi",
       "short_name": "Transaksi",
       "description": "Tambah transaksi baru",
-      "url": "/belajar_pwa_pertama/index.html#transaksi",
+      "url": "index.html#transaksi",
       "icons": [
         {
-          "src": "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
+          "src": "icons/logo subflow 192x192.png",
           "sizes": "192x192",
           "type": "image/png"
         }
       ]
     }
   ],
-
   "share_target": {
-    "action": "/belajar_pwa_pertama/share-target.html",
+    "action": "share-target.html",
     "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
     "params": {
       "title": "title",
       "text": "text",
       "url": "url"
     }
   },
-
   "file_handlers": [
     {
-      "action": "/belajar_pwa_pertama/index.html",
+      "action": "index.html",
       "accept": {
         "text/csv": [".csv"],
         "application/json": [".json"]
       }
     }
   ],
-
   "protocol_handlers": [
     {
       "protocol": "web+subflow",
-      "url": "/belajar_pwa_pertama/index.html?url=%s"
+      "url": "index.html?url=%s"
     }
   ]
 }
