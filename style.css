@@ -1367,6 +1367,8 @@ body {
   padding: 16px;
   box-shadow: var(--shadow);
   margin-bottom: 1.5rem;
+  align-self: flex-start;
+  width: 100%;
 }
 
 .akun-overview {
