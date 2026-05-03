@@ -7,14 +7,14 @@ const CACHE_VERSION = "pwa-template-v2";
 const OFFLINE_URL   = "offline.html";
 
 const PRECACHE_ASSETS = [
-  "/belajar_pwa_pertama/",
-  "/belajar_pwa_pertama/index.html",
-  "/belajar_pwa_pertama/offline.html",
-  "/belajar_pwa_pertama/style.css",
-  "/belajar_pwa_pertama/app.js",
-  "/belajar_pwa_pertama/manifest.json",
-  "/belajar_pwa_pertama/icons/logo subflow 192x192.png",
-  "/belajar_pwa_pertama/icons/logo subflow 512x512.png",
+  "./",
+  "./index.html",
+  "./offline.html",
+  "./style.css",
+  "./app.js",
+  "./manifest.json",
+  "./icons/logo subflow 192x192.png",
+  "./icons/logo subflow 512x512.png",
 ];
 
 // ── INSTALL ──────────────────────────────────────────────────────
