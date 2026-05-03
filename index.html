@@ -16,11 +16,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="/belajar_pwa_pertama/manifest.json">
+  <link rel="manifest" href="manifest.json">
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/belajar_pwa_pertama/service-worker.js');
+      window.addEventListener('load', async () => {
+        try {
+          const registration = await navigator.serviceWorker.register('service-worker.js');
+
+          console.log('Service Worker registered:', registration.scope);
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
+      });
     }
   </script>
 
@@ -33,8 +41,11 @@
       sendPasswordResetEmail, browserLocalPersistence, browserSessionPersistence, setPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
-      getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc
+      initializeFirestore, getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc, query, where, orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadBytesResumable, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAa79AiF0E6BPYUhxkDSo5Bqjdiw6-MlnA",
@@ -47,18 +58,30 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = initializeFirestore(app, {
+      experimentalForceLongPolling: true
+    });
+    const storage = getStorage(app);
 
     window._auth = auth;
     window._db = db;
+    window._storage = storage;
     window._fsDoc = doc;
     window._fsGetDoc = getDoc;
     window._fsSetDoc = setDoc;
+    window._fsUpdateDoc = updateDoc;
+    window._fsCollection = collection;
+    window._fsQuery = query;
+    window._fsWhere = where;
+    window._fsOrderBy = orderBy;
     window._fsUpdateDoc = updateDoc;
     window._fsOnSnapshot = onSnapshot;
     window._fsServerTimestamp = serverTimestamp;
     window._fsCollection = collection;
     window._fsAddDoc = addDoc;
+    window._fsRef = ref;
+    window._fsUpload = uploadBytesResumable;
+    window._fsGetUrl = getDownloadURL;
     window._signOut = () => signOut(auth);
 
     function fbErrMsg(code) {
@@ -167,14 +190,14 @@
       const user = auth.currentUser;
       if (!user) return;
       if (!rawWa) return showToast('Nomor WhatsApp tidak boleh kosong!', 'error');
-      
+
       // Remove non-numeric
       rawWa = rawWa.replace(/\D/g, '');
       if (rawWa.startsWith('0')) rawWa = '62' + rawWa.substring(1);
       if (rawWa.length < 10) return showToast('Nomor WhatsApp tidak valid!', 'error');
 
       try {
-        await setDoc(doc(db, 'users', user.uid), { storeWhatsapp: rawWa }, { merge: true });
+        await setDoc(doc(db, 'users', user.uid), { whatsappStore: rawWa }, { merge: true });
         showToast('Nomor WhatsApp berhasil diperbarui!');
         closeModal();
       } catch (e) { showToast(fbErrMsg(e.code), 'error'); }
@@ -192,15 +215,15 @@
       openModal('Ubah Nomor WhatsApp', html, 'saveStoreWhatsApp()');
     };
 
-    window.copyUid = function() {
-       const user = auth.currentUser;
-       if(user && user.uid) {
-         navigator.clipboard.writeText(user.uid).then(() => {
-           showToast('ID Akun berhasil disalin!');
-         }).catch(() => {
-           showToast('Gagal menyalin ID', 'error');
-         });
-       }
+    window.copyUid = function () {
+      const user = auth.currentUser;
+      if (user && user.uid) {
+        navigator.clipboard.writeText(user.uid).then(() => {
+          showToast('ID Akun berhasil disalin!');
+        }).catch(() => {
+          showToast('Gagal menyalin ID', 'error');
+        });
+      }
     };
 
     window.promptUbahEmail = async function () {
@@ -298,8 +321,26 @@
             const d = snap.data();
             storeName = d.storeName || d.name || storeName;
             ownerName = d.ownerName || ownerName;
-            storeWa = d.storeWhatsapp || storeWa;
-            
+            storeWa = d.whatsappStore || d.storeWhatsapp || storeWa; // Fallback to storeWhatsapp for migration
+
+            // Sync settings
+            if (d.settings) {
+              window.currentAppTheme = d.settings.theme || 'system';
+              window.currentAutoOpenWa = d.settings.autoOpenWa !== false; // Default true
+              window.currentNotifications = d.settings.notifications === true;
+
+              // Apply Theme Immediately
+              if (typeof applyThemeUI === 'function') {
+                document.documentElement.classList.remove('light', 'dark', 'system');
+                document.documentElement.classList.add(window.currentAppTheme);
+                applyThemeUI(window.currentAppTheme);
+              }
+            } else {
+              window.currentAppTheme = 'system';
+              window.currentAutoOpenWa = true;
+              window.currentNotifications = false;
+            }
+
             if (d.createdAt) {
               const cDate = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
               joinDate = cDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -319,24 +360,28 @@
           const lWaTop = document.getElementById('lainnyaStoreWaTop'); if (lWaTop) lWaTop.textContent = storeWa;
           const lemail = document.getElementById('lainnyaEmail'); if (lemail) lemail.textContent = user.email;
           const ljoin = document.getElementById('lainnyaJoinDate'); if (ljoin) ljoin.textContent = joinDate;
-          
+
           const lUid = document.getElementById('lainnyaUid'); if (lUid) lUid.textContent = user.uid;
-          const lLast = document.getElementById('lainnyaLastLogin'); 
+          const lLast = document.getElementById('lainnyaLastLogin');
           if (lLast) lLast.textContent = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleString('id-ID') : '-';
-          
+
           const lWaStatus = document.getElementById('lainnyaWaStatus');
           if (lWaStatus) {
-             if (window.WhatsAppService && window.WhatsAppService.API_TOKEN === 'TOKEN_ANDA_DISINI') {
-               lWaStatus.textContent = 'Mode Simulasi';
-               lWaStatus.style.color = 'var(--warning)';
-             } else if (!window.currentStoreWa) {
-               lWaStatus.textContent = 'Belum Terhubung';
-               lWaStatus.style.color = 'var(--danger)';
-             } else {
-               lWaStatus.textContent = 'Terhubung';
-               lWaStatus.style.color = 'var(--success)';
-             }
+            if (window.WhatsAppService && window.WhatsAppService.API_TOKEN === 'TOKEN_ANDA_DISINI') {
+              lWaStatus.textContent = 'Mode Simulasi';
+              lWaStatus.style.color = 'var(--warning)';
+            } else if (!window.currentStoreWa) {
+              lWaStatus.textContent = 'Belum Terhubung';
+              lWaStatus.style.color = 'var(--danger)';
+            } else {
+              lWaStatus.textContent = 'Terhubung';
+              lWaStatus.style.color = 'var(--success)';
+            }
           }
+
+          // Perbarui Toggle Auto Open WA jika ada
+          const elAutoOpenWa = document.getElementById('toggleAutoOpenWa');
+          if (elAutoOpenWa) { elAutoOpenWa.checked = window.currentAutoOpenWa; }
 
           applyProfileAvatar(storeName);
         });
@@ -349,6 +394,7 @@
         });
 
         // Listen to Transaksis
+        let initialTrxLoad = true;
         window._unsubTransaksis = onSnapshot(doc(db, 'transaksis', user.uid), (snap) => {
           const items = snap.exists() ? (snap.data().items || []) : [];
 
@@ -390,6 +436,69 @@
               maximumFractionDigits: 0
             }).format(totalPendapatan);
           }
+
+          if (!initialTrxLoad) {
+            const oldTrx = DB.transaksis() || [];
+            if (items.length > oldTrx.length) {
+              if (typeof showToast === 'function') {
+                showToast('Pesanan Baru Masuk!', 'success');
+              }
+              if (Notification.permission === 'granted') {
+                new Notification('Pesanan Baru', {
+                  body: `Anda memiliki pesanan baru yang harus diproses.`,
+                  icon: 'icons/icon-192x192.png'
+                });
+              }
+            }
+          }
+          initialTrxLoad = false;
+
+          // Update Cache without writing to Firestore to avoid loop
+          if (typeof DB !== 'undefined' && typeof DB.cacheTransaksis === 'function') {
+            DB.cacheTransaksis(items);
+          }
+
+          // Re-render UI if on corresponding views
+          if (typeof renderTransaksis === 'function') renderTransaksis();
+          if (typeof renderDashboard === 'function') renderDashboard();
+          if (typeof renderLangganan === 'function') renderLangganan();
+        });
+
+        // Listen to Warranty Claims (From Global Collection)
+        let initialWarrantyLoad = true;
+        const claimsQuery = query(collection(db, 'warranty_claims'), where('storeUid', '==', user.uid));
+
+        window._unsubWarrantyClaims = onSnapshot(claimsQuery, (snap) => {
+          const items = [];
+          snap.forEach(d => {
+            items.push({ id: d.id, ...d.data() });
+          });
+
+          // Sort client-side if needed (or could use orderBy in query if index exists)
+          items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+          if (!initialWarrantyLoad) {
+            const oldItems = DB.warrantyClaims() || [];
+            if (items.length > oldItems.length) {
+              const newClaim = items[0]; // because we sorted descending, the newest is at [0]
+              if (typeof showToast === 'function' && newClaim) {
+                showToast(`Klaim Garansi Baru Masuk! (${newClaim.whatsapp})`, 'success');
+              }
+              // Optional: Browser Notification
+              if (Notification.permission === 'granted' && newClaim) {
+                new Notification('Klaim Garansi Baru', {
+                  body: `Klaim dari ${newClaim.whatsapp} untuk produk ${newClaim.product}`,
+                  icon: 'icons/icon-192x192.png'
+                });
+              }
+            }
+          }
+          initialWarrantyLoad = false;
+
+          DB.saveWarrantyClaims(items);
+          if (typeof renderKlaimGaransi === 'function') {
+            renderKlaimGaransi();
+          }
         });
 
         await DB.setUID(user.uid);
@@ -405,6 +514,7 @@
         if (window._unsubUser) window._unsubUser();
         if (window._unsubCustomers) window._unsubCustomers();
         if (window._unsubTransaksis) window._unsubTransaksis();
+        if (window._unsubWarrantyClaims) window._unsubWarrantyClaims();
         DB.clearUID();
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app-screen').style.display = 'none';
@@ -429,7 +539,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- AUTH SCREEN -->
-  <div id="auth-screen" class="auth-screen">
+  <div id="auth-screen" class="auth-screen" style="display:none;">
     <div class="auth-wrap">
       <div class="auth-logo">
         <img src="icons/logo subflow 192x192.png" alt="Subflow Logo" class="app-logo"
@@ -511,6 +621,10 @@
             class="bi bi-people-fill"></i><span>Customer</span></div>
         <div class="nav-item" data-page="supplier" onclick="showPage('supplier')"><i
             class="bi bi-truck"></i><span>Supplier</span></div>
+        <div class="nav-item" data-page="klaim" onclick="showPage('klaim')">
+          <i class="bi bi-shield-check"></i><span>Klaim Garansi</span>
+          <span id="klaimBadge" class="nav-badge" style="display:none;background:var(--danger)">0</span>
+        </div>
 
         <div class="nav-label">Keuangan</div>
         <div class="nav-item" data-page="laporan" onclick="showPage('laporan')"><i
@@ -721,6 +835,64 @@
           <div class="card-box" id="profitDetail"></div>
         </div>
 
+        <!-- KLAIM GARANSI -->
+        <div class="page-section" id="page-klaim">
+          <div class="page-header-row">
+            <div>
+              <div class="page-title">Klaim Garansi</div>
+              <div class="page-sub">Kelola pengajuan garansi dari pelanggan</div>
+            </div>
+            <div class="action-buttons"></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--bg-3);"><i class="bi bi-shield-check"
+                  style="color:var(--text-2);"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Total Klaim</div>
+                <div class="stat-value" id="klaimStatTotal">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(239,68,68,0.2);"><i class="bi bi-exclamation-circle"
+                  style="color:var(--danger);"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" id="klaimStatPending">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(245,158,11,0.2);"><i class="bi bi-arrow-repeat"
+                  style="color:var(--warning);"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Diproses</div>
+                <div class="stat-value" id="klaimStatProses">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:rgba(16,185,129,0.2);"><i class="bi bi-check-circle"
+                  style="color:var(--success);"></i></div>
+              <div class="stat-info">
+                <div class="stat-label">Selesai</div>
+                <div class="stat-value" id="klaimStatSelesai">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-bar" style="margin-top:20px;">
+            <div class="search-wrap"><i class="bi bi-search"></i><input id="searchKlaim" placeholder="Cari klaim..." oninput="renderKlaimGaransi()"></div>
+            <select id="filterKlaimStatus" onchange="renderKlaimGaransi()">
+              <option value="">Semua Status</option>
+              <option value="Menunggu Diproses">Pending</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Ditolak">Ditolak</option>
+            </select>
+          </div>
+          <div id="klaimList" class="card-list"></div>
+        </div>
+
         <!-- LAINNYA -->
         <div class="page-section" id="page-lainnya">
           <div class="page-header-row">
@@ -805,10 +977,12 @@
                   <button class="btn-edit-icon" onclick="openEditStoreName()"><i class="bi bi-pencil-fill"></i></button>
                 </div>
                 <div class="akun-email" id="lainnyaEmail">–</div>
-                <div class="akun-wa" style="font-size: 13px; color: var(--text-2); margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                <div class="akun-wa"
+                  style="font-size: 13px; color: var(--text-2); margin-top: 6px; display: flex; align-items: center; gap: 8px;">
                   <i class="bi bi-whatsapp" style="color: #25D366;"></i>
                   <span id="lainnyaStoreWaTop">Nomor WhatsApp Store belum diatur</span>
-                  <button class="btn-edit-icon" onclick="openEditStoreWhatsApp()"><i class="bi bi-pencil-fill"></i></button>
+                  <button class="btn-edit-icon" onclick="openEditStoreWhatsApp()"><i
+                      class="bi bi-pencil-fill"></i></button>
                 </div>
               </div>
             </div>
@@ -883,292 +1057,294 @@
                 <div class="setting-icon"><i class="bi bi-person-check"></i></div>
                 <div class="setting-text">
                   <div class="setting-title">Langganan Aktif</div>
-                  <div class="setting-sub" id="lainnyaLanggananAktif" style="color: var(--success); font-weight: 600;">0</div>
+                  <div class="setting-sub" id="lainnyaLanggananAktif" style="color: var(--success); font-weight: 600;">0
+                  </div>
                 </div>
               </div>
               <div class="setting-item no-hover">
                 <div class="setting-icon"><i class="bi bi-wallet2"></i></div>
                 <div class="setting-text">
                   <div class="setting-title">Total Pendapatan</div>
-                  <div class="setting-sub" id="lainnyaTotalPendapatan" style="font-family: var(--mono); font-weight: 600;">Rp 0</div>
+                  <div class="setting-sub" id="lainnyaTotalPendapatan"
+                    style="font-family: var(--mono); font-weight: 600;">Rp 0</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
-        <div class="page-section" id="page-lainnya-preferensi">
-          <div class="lainnya-card">
-            <div class="setting-list">
-              <div class="setting-item" onclick="toggleTheme()">
-                <div class="setting-icon"><i class="bi bi-moon" id="darkIconLainnya"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Tema Aplikasi</div>
-                  <div class="setting-sub" id="darkModeLabelLainnya">Sistem</div>
-                </div>
-                <i class="bi bi-chevron-right setting-chevron"></i>
+      <div class="page-section" id="page-lainnya-preferensi">
+        <div class="lainnya-card">
+          <div class="setting-list">
+            <div class="setting-item" onclick="toggleTheme()">
+              <div class="setting-icon"><i class="bi bi-moon" id="darkIconLainnya"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Tema Aplikasi</div>
+                <div class="setting-sub" id="darkModeLabelLainnya">Sistem</div>
+              </div>
+              <i class="bi bi-chevron-right setting-chevron"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-lainnya-keamanan">
+        <div class="lainnya-card">
+          <div class="setting-list">
+            <div class="setting-item" onclick="promptUbahEmail()">
+              <div class="setting-icon"><i class="bi bi-envelope"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Ubah Email</div>
+                <div class="setting-sub">Perbarui alamat email akun</div>
+              </div>
+              <i class="bi bi-chevron-right setting-chevron"></i>
+            </div>
+            <div class="setting-item" onclick="promptUbahPassword()">
+              <div class="setting-icon"><i class="bi bi-shield-lock"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Ubah Password</div>
+                <div class="setting-sub">Perbarui kata sandi akun</div>
+              </div>
+              <i class="bi bi-chevron-right setting-chevron"></i>
+            </div>
+            <div class="setting-item" onclick="backupData()">
+              <div class="setting-icon"><i class="bi bi-cloud-arrow-down"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Backup Data</div>
+                <div class="setting-sub">Simpan cadangan data JSON</div>
+              </div>
+              <i class="bi bi-chevron-right setting-chevron"></i>
+            </div>
+            <div class="setting-item" onclick="exportDataAll()">
+              <div class="setting-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Ekspor Data</div>
+                <div class="setting-sub">Unduh seluruh riwayat dalam CSV</div>
+              </div>
+              <i class="bi bi-chevron-right setting-chevron"></i>
+            </div>
+            <div class="setting-item danger-item" onclick="doLogout()">
+              <div class="setting-icon"><i class="bi bi-box-arrow-right"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Logout</div>
+                <div class="setting-sub">Keluar dari sesi saat ini</div>
+              </div>
+            </div>
+            <div class="setting-item danger-item" onclick="doLogoutAll()">
+              <div class="setting-icon"><i class="bi bi-door-closed"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Logout Semua Perangkat</div>
+                <div class="setting-sub">Keluar dari seluruh perangkat aktif</div>
+              </div>
+            </div>
+            <div class="setting-item danger-item" onclick="confirmHapusAkun()">
+              <div class="setting-icon"><i class="bi bi-trash"></i></div>
+              <div class="setting-text">
+                <div class="setting-title">Hapus Akun Permanen</div>
+                <div class="setting-sub">Tindakan ini tidak dapat dibatalkan</div>
+              </div>
+            </div>
+          </div>
+          <div class="security-info">
+            <i class="bi bi-shield-check"></i> Data disimpan aman dengan Firebase. Koneksi terenkripsi. Data pelanggan
+            tidak dibagikan.
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-lainnya-notifikasi">
+        <div class="lainnya-card">
+          <div class="setting-list">
+            <div class="setting-item no-hover">
+              <div class="setting-text">
+                <div class="setting-title">Pengingat Langganan</div>
+                <div class="setting-sub">Notifikasi perpanjang aktif</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="prefNotifLangganan" onchange="savePreferences()" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item no-hover">
+              <div class="setting-text">
+                <div class="setting-title">Paket Hampir Habis</div>
+                <div class="setting-sub">Peringatan paket mendekati expired</div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="prefNotifPaket" onchange="savePreferences()" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-lainnya-bantuan">
+        <div class="lainnya-card" style="padding: 0;">
+          <div class="accordion" id="helpAccordion">
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-grid-1x2-fill"></i> Dashboard</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Melihat ringkasan omzet, laba kotor, jumlah langganan aktif, serta grafik penjualan bulan ini.
+                  Terdapat juga pengingat H-3 untuk langganan yang akan segera expired.</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-receipt"></i> Transaksi</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Mencatat setiap penjualan akun/langganan. Di sini kamu bisa membuat invoice otomatis (JPG) yang
+                  siap dikirimkan ke pelanggan.</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-arrow-repeat"></i> Langganan</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Menu cepat untuk melihat status aktif atau expired semua pelanggan, serta akses langsung untuk
+                  memperpanjang langganan mereka.</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-box-seam"></i> Paket</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Manajemen master data produk/aplikasi premium yang kamu jual. Tentukan harga modal (HPP) dan harga
+                  jual untuk menghitung profit otomatis.</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-people-fill"></i> Customer & Supplier</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Kelola daftar kontak pelanggan yang membeli produkmu, serta daftar toko/pihak ketiga tempat kamu
+                  mendapatkan pasokan akun (Supplier).</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-btn" onclick="toggleAccordion(this)">
+                <span class="accordion-title"><i class="bi bi-bar-chart-fill"></i> Laporan & Profit</span>
+                <i class="bi bi-chevron-down accordion-icon"></i>
+              </button>
+              <div class="accordion-content">
+                <p>Melihat performa bisnismu secara menyeluruh. Cek omzet harian/bulanan di menu Laporan, lalu pantau
+                  laba bersih (Laba Kotor - Biaya Ops) di menu Profit.</p>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="page-section" id="page-lainnya-keamanan">
-          <div class="lainnya-card">
-            <div class="setting-list">
-              <div class="setting-item" onclick="promptUbahEmail()">
-                <div class="setting-icon"><i class="bi bi-envelope"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Ubah Email</div>
-                  <div class="setting-sub">Perbarui alamat email akun</div>
-                </div>
-                <i class="bi bi-chevron-right setting-chevron"></i>
-              </div>
-              <div class="setting-item" onclick="promptUbahPassword()">
-                <div class="setting-icon"><i class="bi bi-shield-lock"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Ubah Password</div>
-                  <div class="setting-sub">Perbarui kata sandi akun</div>
-                </div>
-                <i class="bi bi-chevron-right setting-chevron"></i>
-              </div>
-              <div class="setting-item" onclick="backupData()">
-                <div class="setting-icon"><i class="bi bi-cloud-arrow-down"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Backup Data</div>
-                  <div class="setting-sub">Simpan cadangan data JSON</div>
-                </div>
-                <i class="bi bi-chevron-right setting-chevron"></i>
-              </div>
-              <div class="setting-item" onclick="exportDataAll()">
-                <div class="setting-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Ekspor Data</div>
-                  <div class="setting-sub">Unduh seluruh riwayat dalam CSV</div>
-                </div>
-                <i class="bi bi-chevron-right setting-chevron"></i>
-              </div>
-              <div class="setting-item danger-item" onclick="doLogout()">
-                <div class="setting-icon"><i class="bi bi-box-arrow-right"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Logout</div>
-                  <div class="setting-sub">Keluar dari sesi saat ini</div>
-                </div>
-              </div>
-              <div class="setting-item danger-item" onclick="doLogoutAll()">
-                <div class="setting-icon"><i class="bi bi-door-closed"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Logout Semua Perangkat</div>
-                  <div class="setting-sub">Keluar dari seluruh perangkat aktif</div>
-                </div>
-              </div>
-              <div class="setting-item danger-item" onclick="confirmHapusAkun()">
-                <div class="setting-icon"><i class="bi bi-trash"></i></div>
-                <div class="setting-text">
-                  <div class="setting-title">Hapus Akun Permanen</div>
-                  <div class="setting-sub">Tindakan ini tidak dapat dibatalkan</div>
-                </div>
-              </div>
-            </div>
-            <div class="security-info">
-              <i class="bi bi-shield-check"></i> Data disimpan aman dengan Firebase. Koneksi terenkripsi. Data pelanggan
-              tidak dibagikan.
-            </div>
+      <div class="page-section" id="page-lainnya-tentang">
+        <div class="lainnya-card text-center" style="padding: 24px 16px;">
+          <img src="icons/logo subflow 192x192.png" alt="Subflow Logo"
+            style="width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; box-shadow: var(--shadow);">
+          <div style="font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.02em;">Subflow</div>
+          <div style="font-size: 13px; color: var(--text-3); margin-top: 4px;">Versi 2.0.1</div>
+          <div style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.5;">Platform manajemen
+            langganan akun digital terbaik, membantu mengelola pelanggan, invoice, dan keuangan bisnismu.</div>
+
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
+            <a href="#" class="btn-sm"><i class="bi bi-globe"></i> Website</a>
+            <a href="mailto:subflow27@gmail.com" class="btn-sm"><i class="bi bi-bug"></i> Lapor Bug</a>
           </div>
         </div>
+        <p class="copy-note" style="margin-top: 2rem;">© 2026 Subflow<br>dibuat oleh Aswin Maulana</p>
+      </div>
 
-        <div class="page-section" id="page-lainnya-notifikasi">
-          <div class="lainnya-card">
-            <div class="setting-list">
-              <div class="setting-item no-hover">
-                <div class="setting-text">
-                  <div class="setting-title">Pengingat Langganan</div>
-                  <div class="setting-sub">Notifikasi perpanjang aktif</div>
-                </div>
-                <label class="switch-toggle">
-                  <input type="checkbox" id="prefNotifLangganan" onchange="savePreferences()" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-              <div class="setting-item no-hover">
-                <div class="setting-text">
-                  <div class="setting-title">Paket Hampir Habis</div>
-                  <div class="setting-sub">Peringatan paket mendekati expired</div>
-                </div>
-                <label class="switch-toggle">
-                  <input type="checkbox" id="prefNotifPaket" onchange="savePreferences()" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+    </div><!-- content-area -->
 
-        <div class="page-section" id="page-lainnya-bantuan">
-          <div class="lainnya-card" style="padding: 0;">
-            <div class="accordion" id="helpAccordion">
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-grid-1x2-fill"></i> Dashboard</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Melihat ringkasan omzet, laba kotor, jumlah langganan aktif, serta grafik penjualan bulan ini.
-                    Terdapat juga pengingat H-3 untuk langganan yang akan segera expired.</p>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-receipt"></i> Transaksi</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Mencatat setiap penjualan akun/langganan. Di sini kamu bisa membuat invoice otomatis (JPG) yang
-                    siap dikirimkan ke pelanggan.</p>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-arrow-repeat"></i> Langganan</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Menu cepat untuk melihat status aktif atau expired semua pelanggan, serta akses langsung untuk
-                    memperpanjang langganan mereka.</p>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-box-seam"></i> Paket</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Manajemen master data produk/aplikasi premium yang kamu jual. Tentukan harga modal (HPP) dan harga
-                    jual untuk menghitung profit otomatis.</p>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-people-fill"></i> Customer & Supplier</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Kelola daftar kontak pelanggan yang membeli produkmu, serta daftar toko/pihak ketiga tempat kamu
-                    mendapatkan pasokan akun (Supplier).</p>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <button class="accordion-btn" onclick="toggleAccordion(this)">
-                  <span class="accordion-title"><i class="bi bi-bar-chart-fill"></i> Laporan & Profit</span>
-                  <i class="bi bi-chevron-down accordion-icon"></i>
-                </button>
-                <div class="accordion-content">
-                  <p>Melihat performa bisnismu secara menyeluruh. Cek omzet harian/bulanan di menu Laporan, lalu pantau
-                    laba bersih (Laba Kotor - Biaya Ops) di menu Profit.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- BOTTOM NAV (mobile) -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="bnav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Home</span>
+      </button>
+      <button class="bnav-item" data-page="transaksi" onclick="showPage('transaksi')">
+        <i class="bi bi-receipt"></i>
+        <span>Transaksi</span>
+        <span class="bnav-badge" id="bnavBadge" style="display:none;"></span>
+      </button>
+      <button class="bnav-fab-wrap" onclick="openFabMenu()">
+        <div class="bnav-fab" id="fabBtn"><i class="bi bi-plus-lg"></i></div>
+      </button>
+      <button class="bnav-item" id="bnav-master" onclick="toggleMasterMenu()">
+        <i class="bi bi-layers-fill"></i>
+        <span>Master</span>
+      </button>
+      <button class="bnav-item" data-page="lainnya" onclick="showPage('lainnya')">
+        <i class="bi bi-three-dots"></i>
+        <span>Lainnya</span>
+      </button>
+    </nav>
 
-        <div class="page-section" id="page-lainnya-tentang">
-          <div class="lainnya-card text-center" style="padding: 24px 16px;">
-            <img src="icons/logo subflow 192x192.png" alt="Subflow Logo"
-              style="width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; box-shadow: var(--shadow);">
-            <div style="font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.02em;">Subflow</div>
-            <div style="font-size: 13px; color: var(--text-3); margin-top: 4px;">Versi 2.0.1</div>
-            <div style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.5;">Platform manajemen
-              langganan akun digital terbaik, membantu mengelola pelanggan, invoice, dan keuangan bisnismu.</div>
-
-            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
-              <a href="#" class="btn-sm"><i class="bi bi-globe"></i> Website</a>
-              <a href="mailto:subflow27@gmail.com" class="btn-sm"><i class="bi bi-bug"></i> Lapor Bug</a>
-            </div>
-          </div>
-          <p class="copy-note" style="margin-top: 2rem;">© 2026 Subflow<br>dibuat oleh Aswin Maulana</p>
-        </div>
-
-      </div><!-- content-area -->
-
-      <!-- BOTTOM NAV (mobile) -->
-      <nav class="bottom-nav" id="bottomNav">
-        <button class="bnav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-          <i class="bi bi-grid-1x2-fill"></i>
-          <span>Home</span>
-        </button>
-        <button class="bnav-item" data-page="transaksi" onclick="showPage('transaksi')">
-          <i class="bi bi-receipt"></i>
+    <!-- FAB MENU -->
+    <div class="fab-menu" id="fabMenu" style="display:none;">
+      <div class="fab-overlay" onclick="closeFabMenu()"></div>
+      <div class="fab-options">
+        <button class="fab-option" onclick="closeFabMenu();openModalTransaksi();">
+          <span class="fab-opt-icon"><i class="bi bi-receipt"></i></span>
           <span>Transaksi</span>
-          <span class="bnav-badge" id="bnavBadge" style="display:none;"></span>
         </button>
-        <button class="bnav-fab-wrap" onclick="openFabMenu()">
-          <div class="bnav-fab" id="fabBtn"><i class="bi bi-plus-lg"></i></div>
+        <button class="fab-option" onclick="closeFabMenu();openModalCustomer();">
+          <span class="fab-opt-icon"><i class="bi bi-person-plus-fill"></i></span>
+          <span>Customer</span>
         </button>
-        <button class="bnav-item" id="bnav-master" onclick="toggleMasterMenu()">
-          <i class="bi bi-layers-fill"></i>
-          <span>Master</span>
+        <button class="fab-option" onclick="closeFabMenu();openModalPaket();">
+          <span class="fab-opt-icon"><i class="bi bi-box-seam"></i></span>
+          <span>Paket</span>
         </button>
-        <button class="bnav-item" data-page="lainnya" onclick="showPage('lainnya')">
-          <i class="bi bi-three-dots"></i>
-          <span>Lainnya</span>
+        <button class="fab-option" onclick="closeFabMenu();openModalBiaya();">
+          <span class="fab-opt-icon"><i class="bi bi-wallet2"></i></span>
+          <span>Biaya</span>
         </button>
-      </nav>
+      </div>
+    </div>
 
-      <!-- FAB MENU -->
-      <div class="fab-menu" id="fabMenu" style="display:none;">
-        <div class="fab-overlay" onclick="closeFabMenu()"></div>
-        <div class="fab-options">
-          <button class="fab-option" onclick="closeFabMenu();openModalTransaksi();">
-            <span class="fab-opt-icon"><i class="bi bi-receipt"></i></span>
-            <span>Transaksi</span>
+    <!-- MASTER MENU (popup) -->
+    <div class="master-menu" id="masterMenu" style="display:none;">
+      <div class="fab-overlay" onclick="closeMasterMenu()"></div>
+      <div class="master-panel">
+        <div class="master-panel-title">Master Data & Keuangan</div>
+        <div class="master-grid">
+          <button class="master-item" onclick="closeMasterMenu();showPage('paket');">
+            <i class="bi bi-box-seam"></i><span>Paket</span>
           </button>
-          <button class="fab-option" onclick="closeFabMenu();openModalCustomer();">
-            <span class="fab-opt-icon"><i class="bi bi-person-plus-fill"></i></span>
-            <span>Customer</span>
+          <button class="master-item" onclick="closeMasterMenu();showPage('customer');">
+            <i class="bi bi-people-fill"></i><span>Customer</span>
           </button>
-          <button class="fab-option" onclick="closeFabMenu();openModalPaket();">
-            <span class="fab-opt-icon"><i class="bi bi-box-seam"></i></span>
-            <span>Paket</span>
+          <button class="master-item" onclick="closeMasterMenu();showPage('supplier');">
+            <i class="bi bi-truck"></i><span>Supplier</span>
           </button>
-          <button class="fab-option" onclick="closeFabMenu();openModalBiaya();">
-            <span class="fab-opt-icon"><i class="bi bi-wallet2"></i></span>
-            <span>Biaya</span>
+          <button class="master-item" onclick="closeMasterMenu();showPage('langganan');">
+            <i class="bi bi-arrow-repeat"></i><span>Langganan</span>
+          </button>
+          <button class="master-item" onclick="closeMasterMenu();showPage('laporan');">
+            <i class="bi bi-bar-chart-fill"></i><span>Laporan</span>
+          </button>
+          <button class="master-item" onclick="closeMasterMenu();showPage('biaya');">
+            <i class="bi bi-wallet2"></i><span>Biaya</span>
+          </button>
+          <button class="master-item" onclick="closeMasterMenu();showPage('profit');">
+            <i class="bi bi-graph-up-arrow"></i><span>Profit</span>
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- MASTER MENU (popup) -->
-      <div class="master-menu" id="masterMenu" style="display:none;">
-        <div class="fab-overlay" onclick="closeMasterMenu()"></div>
-        <div class="master-panel">
-          <div class="master-panel-title">Master Data & Keuangan</div>
-          <div class="master-grid">
-            <button class="master-item" onclick="closeMasterMenu();showPage('paket');">
-              <i class="bi bi-box-seam"></i><span>Paket</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('customer');">
-              <i class="bi bi-people-fill"></i><span>Customer</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('supplier');">
-              <i class="bi bi-truck"></i><span>Supplier</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('langganan');">
-              <i class="bi bi-arrow-repeat"></i><span>Langganan</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('laporan');">
-              <i class="bi bi-bar-chart-fill"></i><span>Laporan</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('biaya');">
-              <i class="bi bi-wallet2"></i><span>Biaya</span>
-            </button>
-            <button class="master-item" onclick="closeMasterMenu();showPage('profit');">
-              <i class="bi bi-graph-up-arrow"></i><span>Profit</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- main-wrap -->
+  </div><!-- main-wrap -->
   </div><!-- app-screen -->
 
   <!-- MODAL CONTAINER -->
@@ -1180,42 +1356,42 @@
       if (!('serviceWorker' in navigator)) return;
 
       try {
-        // ── Daftarkan SW ──────────────────────────────────────────
-        const reg = await navigator.serviceWorker.register(
-          '/belajar_pwa_pertama/sw.js',
-          { scope: '/belajar_pwa_pertama/' }
-        );
-        console.log('[SW] Terdaftar, scope:', reg.scope);
-
-        // Update SW jika ada versi baru
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker?.addEventListener('statechange', () => {
-            if (newWorker.statechange === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        });
+        // SW registered at the top of the file. Get the ready registration for push notifications.
+        const reg = await navigator.serviceWorker.ready;
 
         // ── Push Notification Permission ──────────────────────────
         if ('Notification' in window && 'PushManager' in window) {
-          // Minta izin notifikasi saat user sudah login (tidak langsung saat buka)
+          // Minta izin notifikasi saat user memicu
           window.requestPushPermission = async function () {
             try {
               const permission = await Notification.requestPermission();
+              const user = auth.currentUser;
               if (permission === 'granted') {
                 console.log('[Push] Izin diberikan');
-                // Tampilkan notifikasi test agar PWABuilder mendeteksi
+                if (user) {
+                  await updateDoc(doc(db, 'users', user.uid), { 'settings.notifications': true });
+                }
                 reg.showNotification('Subflow Aktif! 🎉', {
-                  body: 'Push notification berhasil diaktifkan.',
-                  icon: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
-                  badge: '/belajar_pwa_pertama/icons/logo subflow 192x192.png',
+                  body: 'Notifikasi sistem berhasil diaktifkan.',
+                  icon: './icons/logo subflow 192x192.png',
+                  badge: './icons/logo subflow 192x192.png',
                   tag: 'subflow-welcome',
                 });
+                showToast('Notifikasi sistem berhasil diaktifkan.');
+              } else {
+                if (user) {
+                  await updateDoc(doc(db, 'users', user.uid), { 'settings.notifications': false });
+                }
+                showToast('Izin notifikasi ditolak.', 'warning');
               }
             } catch (e) {
               console.warn('[Push] Gagal minta izin:', e);
+              showToast('Gagal meminta izin notifikasi.', 'error');
             }
+          };
+        } else {
+          window.requestPushPermission = async function () {
+            showToast('Browser ini tidak mendukung sistem notifikasi.', 'warning');
           };
         }
 
