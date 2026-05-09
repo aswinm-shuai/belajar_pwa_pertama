@@ -464,6 +464,35 @@
           if (typeof renderLangganan === 'function') renderLangganan();
         });
 
+        // Listen to Live Orders (Dari Landing Page)
+        let initialLiveOrdersLoad = true;
+        const liveOrdersQuery = query(collection(db, 'live_orders'), where('storeUid', '==', user.uid), orderBy('timestamp', 'asc'));
+        window._unsubLiveOrders = onSnapshot(liveOrdersQuery, (snap) => {
+          snap.docChanges().forEach((change) => {
+            if (change.type === 'added' && !initialLiveOrdersLoad) {
+              const order = change.doc.data();
+              if (typeof showToast === 'function') {
+                showToast(`Order Baru: ${order.nama} - ${order.produk}`, 'success');
+              }
+              if (Notification.permission === 'granted') {
+                new Notification('Order Baru (Realtime)', {
+                  body: `${order.nama} memesan ${order.produk} seharga ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.harga)}`,
+                  icon: 'icons/logo subflow 192x192.png'
+                });
+              }
+              
+              // Optional: auto-fetch db transaksis to update the table without reload
+              if (typeof DB !== 'undefined' && typeof DB.setUID === 'function') {
+                DB.setUID(user.uid).then(() => {
+                  if (typeof renderTransaksi === 'function') renderTransaksi();
+                  if (typeof renderDashboard === 'function') renderDashboard();
+                });
+              }
+            }
+          });
+          initialLiveOrdersLoad = false;
+        });
+
         // Listen to Warranty Claims (From Global Collection)
         let initialWarrantyLoad = true;
         const claimsQuery = query(collection(db, 'warranty_claims'), where('storeUid', '==', user.uid));
