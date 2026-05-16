@@ -6,8 +6,8 @@
 // ─── DB: Firestore per UID + in-memory cache ───
 const DB = (function () {
   let _uid = null;
-  const _COLS = ['pakets', 'customers', 'suppliers', 'transaksis', 'biayas'];
-  const _cache = { pakets: [], customers: [], suppliers: [], transaksis: [], biayas: [] };
+  const _COLS = ['pakets', 'customers', 'suppliers', 'transaksis', 'biayas', 'warrantyClaims'];
+  const _cache = { pakets: [], customers: [], suppliers: [], transaksis: [], biayas: [], warrantyClaims: [] };
 
   async function _fsGet(col) {
     try {
@@ -37,12 +37,14 @@ const DB = (function () {
     customers() { return _cache.customers || []; },
     suppliers() { return _cache.suppliers || []; },
     transaksis() { return _cache.transaksis || []; },
-    biayas() { return _cache.biayas || []; },
+    warrantyClaims() { return _cache.warrantyClaims || []; },
     savePakets(v) { _cache.pakets = v; _fsSet('pakets', v); },
     saveCustomers(v) { _cache.customers = v; _fsSet('customers', v); },
     saveSuppliers(v) { _cache.suppliers = v; _fsSet('suppliers', v); },
     saveTransaksis(v) { _cache.transaksis = v; _fsSet('transaksis', v); },
+    cacheTransaksis(v) { _cache.transaksis = v; },
     saveBiayas(v) { _cache.biayas = v; _fsSet('biayas', v); },
+    saveWarrantyClaims(v) { _cache.warrantyClaims = v; _fsSet('warrantyClaims', v); },
   };
 })();
 
@@ -202,6 +204,7 @@ function checkReminders() {
                   h3SentAt: new Date().toISOString() // Fallback from serverTimestamp due to Array limitations
                 };
                 DB.saveTransaksis(trxsUpdate);
+                sendCrossPlatformNotification('Reminder Terkirim', `Reminder perpanjangan untuk ${c.nama} telah dikirim.`);
               }
             }
           });
@@ -350,7 +353,7 @@ function applyThemeUI(theme) {
 }
 
 function toggleTheme() {
-  let currentTheme = DB.get('appTheme') || 'system';
+  let currentTheme = window.currentAppTheme || 'system';
   let nextIdx = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
   let newTheme = THEMES[nextIdx];
 
@@ -358,7 +361,14 @@ function toggleTheme() {
   document.documentElement.classList.add(newTheme);
 
   applyThemeUI(newTheme);
-  DB.set('appTheme', newTheme);
+
+  if (window._auth && window._auth.currentUser && window._db) {
+    window._fsUpdateDoc(window._fsDoc(window._db, 'users', window._auth.currentUser.uid), {
+      'settings.theme': newTheme
+    }).catch(e => console.warn('Failed to save theme to DB', e));
+  } else {
+    DB.set('appTheme', newTheme);
+  }
 }
 
 // ─── TOAST ───
@@ -370,6 +380,18 @@ function showToast(msg, type = 'success') {
   t.innerHTML = `<span>${icons[type] || '✓'}</span>${msg}`;
   c.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ─── CROSS PLATFORM NOTIFICATIONS ───
+function sendCrossPlatformNotification(title, body) {
+  if (window.currentNotifications && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body: body,
+      icon: '/belajar_pwa_pertama/icons/logo subflow 192x192.png'
+    });
+  } else {
+    showToast(`${title}: ${body}`, 'info');
+  }
 }
 
 // ─── MODAL ───
@@ -602,6 +624,10 @@ function openModalTransaksi(renewData = null) {
       <option value="">— Pilih Supplier —</option>
       ${supps.map(s => `<option value="${s.id}">${s.nama}</option>`).join('')}
     </select>`)}
+    <div class="row-2col">
+      ${fieldGroup('Email/Username Akun', `<input type="text" class="field-input" id="tAccountEmail" placeholder="opsional">`)}
+      ${fieldGroup('Password Akun', `<input type="text" class="field-input" id="tAccountPassword" placeholder="opsional">`)}
+    </div>
     ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']]))}
     ${catatanField('')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
@@ -658,6 +684,10 @@ function editTransaksi(id) {
       <option value="">— Pilih Supplier —</option>
       ${supps.map(s => `<option value="${s.id}" ${t.suppId === s.id ? 'selected' : ''}>${s.nama}</option>`).join('')}
     </select>`)}
+    <div class="row-2col">
+      ${fieldGroup('Email/Username Akun', `<input type="text" class="field-input" id="tAccountEmail" value="${t.accountEmail || ''}" placeholder="opsional">`)}
+      ${fieldGroup('Password Akun', `<input type="text" class="field-input" id="tAccountPassword" value="${t.accountPassword || ''}" placeholder="opsional">`)}
+    </div>
     ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']], t.statusBayar))}
     ${catatanField(t.catatan || '')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
@@ -695,6 +725,11 @@ function saveTransaksi() {
   const catatanEl = document.getElementById('tCatatan');
   const catatan = catatanEl ? catatanEl.value.trim() : '';
   const invoiceNum = document.getElementById('tInvoice') ? document.getElementById('tInvoice').value.trim() : '';
+
+  const accountEmailEl = document.getElementById('tAccountEmail');
+  const accountPasswordEl = document.getElementById('tAccountPassword');
+  const accountEmail = accountEmailEl ? accountEmailEl.value.trim() : '';
+  const accountPassword = accountPasswordEl ? accountPasswordEl.value.trim() : '';
 
   // ─── Keterangan Invoice ───
   const customerNotesEl = document.getElementById('tCustomerNotes');
@@ -740,7 +775,7 @@ function saveTransaksi() {
     invoice_number: invoiceNum,
     harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp,
     mulai, expired, statusLangganan, statusBayar, suppId, catatan,
-    customerNotes
+    customerNotes, accountEmail, accountPassword
   };
 
   if (!trxData) return; // Safe check
@@ -775,12 +810,25 @@ function saveTransaksi() {
       const finalStoreName = window.currentStoreName || 'Toko Kami';
       const senderWa = window.currentStoreWa || 'Nomor Default';
 
-      const text = `Halo *${cName}* 👋\nTerima kasih sudah bertransaksi di *${finalStoreName}* 🙏\n\n📅 Tanggal: ${tglIndo}\n🧾 No Invoice: *${invoiceNum}*\n\n📦 Paket: ${nmPaket}\n⏳ Durasi: ${drs}\n\n💰 Total: Rp ${fmtRupiah(trxData.harga)}\n📊 Status: ${statusBayar.toUpperCase()}\n\nJika ada pertanyaan, silakan hubungi kami ya 😊`;
+      let text = `🧾 *NOTA PEMBELIAN *${finalStoreName}*\n\nHalo *${cName}*,\nTerima kasih telah berbelanja di *${finalStoreName}*.\n\n━━━━━━━━━━━━━━━━━━\n📦 *Detail Pesanan*\n• Produk: ${nmPaket}\n• Harga: Rp ${fmtRupiah(trxData.harga)}\n• Durasi: ${drs}\n• Tanggal: ${tglIndo}\n━━━━━━━━━━━━━━━━━━\n`;
 
-      // Catatan Integrasi API:
-      // Jika kelak menggunakan Fonnte/Wablas, gunakan variabel senderWa sebagai referensi Sender ID.
-      // Saat ini menggunakan Direct Link wa.me diarahkan ke pelanggan:
-      window.open(`https://wa.me/${waNo}?text=${encodeURIComponent(text)}`, '_blank');
+      if (accountEmail || accountPassword) {
+        text += `\n🔐 *Detail Akun*\n`;
+        if (accountEmail) text += `• Email/Username: ${accountEmail}\n`;
+        if (accountPassword) text += `• Password: ${accountPassword}\n`;
+        text += `━━━━━━━━━━━━━━━━━━\n`;
+      }
+
+      text += `\n💳 *Status Pembayaran*\n${statusBayar.toUpperCase()}\n\n📞 *Customer Support*\n${senderWa}\n\nTerima kasih telah mempercayai layanan kami 🙏`;
+
+      // Buka otomatis WA jika toggle autoOpenWa aktif
+      if (window.currentAutoOpenWa) {
+        window.open(`https://wa.me/${waNo}?text=${encodeURIComponent(text)}`, '_blank');
+      } else {
+        showToast('Transaksi disimpan. Klik share WhatsApp secara manual dari list transaksi.');
+      }
+
+      sendCrossPlatformNotification('Transaksi Berhasil', `Transaksi dengan invoice ${invoiceNum} untuk ${cName} berhasil disimpan.`);
     } else {
       showToast('Nomor WhatsApp customer tidak tersedia', 'warning');
     }
@@ -1302,9 +1350,12 @@ function renderPaket() {
   el.innerHTML = pks.map(p => `
     <div class="item-card">
       <div class="item-card-header">
-        <div>
-          <div class="item-card-title">${p?.nama || '-'}</div>
-          <div class="item-card-sub">${p?.durasi || 0} hari</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${p?.imageUrl ? `<img src="${p.imageUrl}" alt="${p.nama}" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f8fafc;border:1px solid var(--border);">` : `<div style="width:40px;height:40px;border-radius:8px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;color:var(--text-3);border:1px solid var(--border);"><i class="bi bi-image"></i></div>`}
+          <div>
+            <div class="item-card-title">${p?.nama || '-'}</div>
+            <div class="item-card-sub">${p?.durasi || 0} hari</div>
+          </div>
         </div>
         <span class="badge ${p?.status === 'aktif' ? 'badge-success' : 'badge-gray'}">${p?.status || '-'}</span>
       </div>
@@ -1329,6 +1380,12 @@ function openModalPaket(id = null) {
   const pks = DB.pakets();
   const p = id ? pks.find(pk => pk.id === id) : null;
   const html = `
+    ${fieldGroup('Logo / Gambar Paket', `
+      ${p && p.imageUrl ? `<img src="${p.imageUrl}" style="width:64px;height:64px;object-fit:contain;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);">` : ''}
+      <input type="file" class="field-input" id="pLogo" accept="image/*" style="padding:6px; font-size:12px;">
+      <input type="hidden" id="pLogoUrl" value="${p && p.imageUrl ? p.imageUrl : ''}">
+      <p style="font-size:11px;color:var(--text-3);margin-top:4px;">Opsional. Tampil di Landing Page.</p>
+    `)}
     ${fieldGroup('Nama Paket *', `<input type="text" class="field-input" id="pNama" value="${p ? p.nama : ''}" placeholder="cth: Netflix 1P">`)}
     <div class="row-2col">
       ${fieldGroup('Harga Jual *', `<input type="number" class="field-input" id="pHarga" value="${p ? p.harga : ''}" placeholder="45000">`)}
@@ -1341,20 +1398,41 @@ function openModalPaket(id = null) {
 
 function editPaket(id) { openModalPaket(id); }
 
-function savePaket(id) {
+async function savePaket(id) {
   const nama = document.getElementById('pNama').value.trim();
   const harga = parseFloat(document.getElementById('pHarga').value);
   const hpp = parseFloat(document.getElementById('pHpp').value);
   const durasi = parseInt(document.getElementById('pDurasi').value);
   const status = document.getElementById('pStatus').value;
+  let imageUrl = document.getElementById('pLogoUrl').value;
+  const logoFile = document.getElementById('pLogo').files[0];
+
   if (!nama || !harga || !hpp) { showToast('Nama, Harga, HPP wajib diisi!', 'error'); return; }
+
+  const btnText = document.querySelector('.modal-footer .btn-accent').innerHTML;
+  if (logoFile) {
+    try {
+      showToast('Mengunggah gambar...', 'info');
+      document.querySelector('.modal-footer .btn-accent').innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
+      document.querySelector('.modal-footer .btn-accent').disabled = true;
+      const storageRef = window._fsRef(window._storage, `products/${Date.now()}_${logoFile.name}`);
+      const uploadTask = await window._fsUpload(storageRef, logoFile);
+      imageUrl = await window._fsGetUrl(uploadTask.ref);
+    } catch (e) {
+      document.querySelector('.modal-footer .btn-accent').innerHTML = btnText;
+      document.querySelector('.modal-footer .btn-accent').disabled = false;
+      showToast('Gagal mengunggah gambar: ' + e.message, 'error');
+      return;
+    }
+  }
+
   const pks = DB.pakets();
   if (id) {
     const idx = pks.findIndex(p => p.id === id);
-    if (idx >= 0) pks[idx] = { ...pks[idx], nama, harga, hpp, durasi, status };
+    if (idx >= 0) pks[idx] = { ...pks[idx], nama, harga, hpp, durasi, status, imageUrl };
   } else {
     const newId = pks.length ? Math.max(...pks.map(p => p.id)) + 1 : 1;
-    pks.push({ id: newId, nama, harga, hpp, durasi, status });
+    pks.push({ id: newId, nama, harga, hpp, durasi, status, imageUrl });
   }
   DB.savePakets(pks);
   closeModal();
@@ -1780,6 +1858,311 @@ function loadPreferences() {
   }
 }
 
+// ─── KLAIM GARANSI ───
+function renderKlaimGaransi() {
+  const search = (document.getElementById('searchKlaim') || {}).value || '';
+  const filterStatus = (document.getElementById('filterKlaimStatus') || {}).value || '';
+  const klaims = DB.warrantyClaims() || [];
+  
+  // Stats
+  let total = klaims.length;
+  let pending = 0, proses = 0, selesai = 0;
+  
+  klaims.forEach(k => {
+    if (k.status === 'Menunggu Diproses' || k.status === 'pending') pending++;
+    else if (k.status === 'diproses' || k.status === 'Diproses') proses++;
+    else if (k.status === 'selesai' || k.status === 'Selesai') selesai++;
+  });
+  
+  const elTotal = document.getElementById('klaimStatTotal'); if (elTotal) elTotal.textContent = total;
+  const elPending = document.getElementById('klaimStatPending'); if (elPending) elPending.textContent = pending;
+  const elProses = document.getElementById('klaimStatProses'); if (elProses) elProses.textContent = proses;
+  const elSelesai = document.getElementById('klaimStatSelesai'); if (elSelesai) elSelesai.textContent = selesai;
+  
+  // Badge
+  const badge = document.getElementById('klaimBadge');
+  if (badge) {
+    if (pending > 0) {
+      badge.textContent = pending;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  const el = document.getElementById('klaimList');
+  if (!el) return;
+
+  let filtered = klaims.filter(k => {
+    const q = ((k.whatsapp || '') + (k.productName || '') + (k.packageName || '') + (k.invoiceId || '')).toLowerCase();
+    if (search && !q.includes(search.toLowerCase())) return false;
+    
+    // Status Filter
+    if (filterStatus) {
+      let ks = k.status;
+      if (ks === 'pending') ks = 'Menunggu Diproses';
+      if (ks === 'diproses') ks = 'Diproses';
+      if (ks === 'selesai') ks = 'Selesai';
+      if (ks === 'ditolak') ks = 'Ditolak';
+      if (ks !== filterStatus) return false;
+    }
+    
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="bi bi-shield-exclamation"></i><p>Belum ada klaim garansi</p></div>`;
+    return;
+  }
+
+  // Sort by created descending
+  const sorted = filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  el.innerHTML = sorted.map(k => {
+    const tgl = new Date(k.createdAt).toLocaleString('id-ID', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+    let badgeClass = 'badge-secondary';
+    let statusText = k.status;
+    if (k.status === 'pending' || k.status === 'Menunggu Diproses') { badgeClass = 'badge-danger'; statusText = 'Pending'; }
+    if (k.status === 'diproses' || k.status === 'Diproses') { badgeClass = 'badge-warning'; statusText = 'Diproses'; }
+    if (k.status === 'selesai' || k.status === 'Selesai') { badgeClass = 'badge-success'; statusText = 'Selesai'; }
+    if (k.status === 'ditolak' || k.status === 'Ditolak') { badgeClass = 'badge-secondary'; statusText = 'Ditolak'; }
+    
+    const displayProduct = k.packageName || k.productName || k.product || '-';
+
+    return `
+      <div class="item-card">
+        <div class="item-card-header">
+          <div>
+            <div class="item-card-title">${k.invoiceId || k.invoiceNumber || '-'}</div>
+            <div class="item-card-sub">(Customer: ${k.whatsapp || '-'}) · ${displayProduct} · ${tgl}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:800;color:var(--text);font-family:var(--mono);">${k.id ? k.id.substring(0, 8) : '-'}</div>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+        </div>
+        <div class="item-card-body">
+          <span class="item-meta"><i class="bi bi-envelope"></i>${k.email || '-'}</span>
+          <span class="item-meta"><i class="bi bi-shield-exclamation" style="color:var(--accent);"></i>${(k.issue || k.issueDescription || '').length > 30 ? (k.issue || k.issueDescription || '').substring(0, 30) + '…' : (k.issue || k.issueDescription || '-')}</span>
+        </div>
+        <div class="item-card-footer">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          <div class="item-actions">
+            <button class="btn-sm" onclick="openDetailKlaim('${k.id}')" title="Detail"><i class="bi bi-eye"></i> Detail</button>
+            <button class="btn-sm" onclick="openModalKirimAkunGaransi('${k.id}')" title="Kirim Akun"><i class="bi bi-whatsapp"></i> Kirim Akun</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.openDetailKlaim = function(id) {
+  const k = (DB.warrantyClaims() || []).find(x => x.id === id);
+  if (!k) return;
+  
+  const statusOptions = `
+    <select id="wStatusSelect" class="field-input" onchange="updateStatusKlaim('${k.id}', this.value)">
+      <option value="Menunggu Diproses" ${k.status === 'Menunggu Diproses' || k.status === 'pending' ? 'selected' : ''}>Pending</option>
+      <option value="Diproses" ${k.status === 'Diproses' || k.status === 'diproses' ? 'selected' : ''}>Diproses</option>
+      <option value="Selesai" ${k.status === 'Selesai' || k.status === 'selesai' ? 'selected' : ''}>Selesai</option>
+      <option value="Ditolak" ${k.status === 'Ditolak' || k.status === 'ditolak' ? 'selected' : ''}>Ditolak</option>
+    </select>
+  `;
+  
+  const attachHtml = (k.proofUrl || k.attachmentUrl) ? `
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <a href="${k.proofUrl || k.attachmentUrl}" target="_blank" class="btn-primary-outline" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;text-decoration:none;">
+        <i class="bi bi-eye"></i> Preview
+      </a>
+      <a href="${k.proofUrl || k.attachmentUrl}" download="${k.proofFileName || 'bukti_garansi'}" target="_blank" class="btn-primary-outline" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;text-decoration:none;">
+        <i class="bi bi-download"></i> Download
+      </a>
+    </div>
+  ` : '';
+  
+  const html = `
+    <div style="display:grid; grid-template-columns: 1fr; gap: 16px;">
+      <div class="card-box" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          <div style="font-size:12px; color:var(--text-muted);">ID Klaim: <strong style="color:var(--text);font-family:var(--mono);">${k.id}</strong></div>
+          <div style="font-size:12px; color:var(--text-muted);">${new Date(k.createdAt).toLocaleString('id-ID')}</div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Pelanggan</div>
+            <div style="font-weight:600;">${k.whatsapp}</div>
+            <div style="font-size:12px;">${k.email || '-'}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Produk</div>
+            <div style="font-weight:600;">${k.product || k.productName || '-'}</div>
+            <div style="font-size:12px;">INV: ${k.invoiceId || k.invoiceNumber || '-'}</div>
+          </div>
+        </div>
+        
+        <div style="background:var(--bg-elevated); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Deskripsi Kendala:</div>
+          <div style="font-size:13px; line-height:1.4;">${(k.issue || k.issueDescription || '').replace(/\\n/g, '<br>')}</div>
+          ${attachHtml}
+        </div>
+      </div>
+      
+      <div class="card-box" style="margin:0;">
+        <div class="field-group" style="margin-bottom:0;">
+          <label>Status Klaim</label>
+          ${statusOptions}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  openModal('Detail Klaim Garansi', html, null, null);
+  
+  // Hide default save button
+  const saveBtn = document.getElementById('modalSaveBtn');
+  if (saveBtn) saveBtn.style.display = 'none';
+};
+
+window.updateStatusKlaim = async function(id, newStatus) {
+  try {
+    const docRef = window._fsDoc(window._db, 'warranty_claims', id);
+    await window._fsUpdateDoc(docRef, { 
+      status: newStatus,
+      updatedAt: Date.now()
+    });
+    showToast('Status klaim diperbarui');
+  } catch (err) {
+    showToast('Gagal update status', 'error');
+    console.error(err);
+  }
+};
+
+window.openModalKirimAkunGaransi = function(id) {
+  const k = (DB.warrantyClaims() || []).find(x => x.id === id);
+  if (!k) return;
+
+  const html = `
+    <div class="field-group">
+      <label>Email Akun <span style="color:var(--accent);">*</span></label>
+      <input type="email" id="wRepEmail" class="field-input" placeholder="Masukkan email akun pengganti" value="${k.replacementAccount?.email || ''}">
+    </div>
+    <div class="field-group">
+      <label>Password Akun <span style="color:var(--accent);">*</span></label>
+      <input type="text" id="wRepPass" class="field-input" placeholder="Masukkan password akun" value="${k.replacementAccount?.password || ''}">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="field-group">
+        <label>PIN <span style="font-size:11px;color:var(--text-3);">(opsional)</span></label>
+        <input type="text" id="wRepPin" class="field-input" placeholder="Misal: 1234" value="${k.replacementAccount?.pin || ''}">
+      </div>
+      <div class="field-group">
+        <label>Profil <span style="font-size:11px;color:var(--text-3);">(opsional)</span></label>
+        <input type="text" id="wRepProfile" class="field-input" placeholder="Misal: Profil 1" value="${k.replacementAccount?.profile || ''}">
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Catatan Tambahan <span style="font-size:11px;color:var(--text-3);">(opsional)</span></label>
+      <textarea id="wRepNote" class="field-input" placeholder="Pesan tambahan untuk customer" rows="2">${k.replacementAccount?.notes || ''}</textarea>
+    </div>
+  `;
+
+  openModal('Kirim Akun Garansi', html, () => simpanAkunGaransi(id), 'Simpan & Kirim');
+};
+
+window.simpanAkunGaransi = async function(id) {
+  const wEmail = document.getElementById('wRepEmail').value.trim();
+  const wPass = document.getElementById('wRepPass').value.trim();
+  const wPin = document.getElementById('wRepPin').value.trim();
+  const wProfile = document.getElementById('wRepProfile').value.trim();
+  const wNote = document.getElementById('wRepNote').value.trim();
+  
+  if (!wEmail || !wPass) {
+    showToast('Email dan Password akun wajib diisi!', 'error');
+    return;
+  }
+  
+  // Buka tab kosong SEBELUM proses async
+  const waWindow = window.open('about:blank', '_blank');
+
+  if (!waWindow) {
+    showToast('Izinkan popup untuk membuka WhatsApp.', 'error');
+    return;
+  }
+
+  try {
+    const btn = document.getElementById('modalSaveBtn');
+    if (btn) { btn.innerHTML = `Menyimpan...`; btn.disabled = true; }
+
+    const claims = DB.warrantyClaims() || [];
+    const k = claims.find(x => x.id === id);
+    if (!k) {
+      if (!waWindow.closed) waWindow.close();
+      return;
+    }
+    
+    const docRef = window._fsDoc(window._db, 'warranty_claims', id);
+    await window._fsUpdateDoc(docRef, {
+      replacementAccount: {
+        email: wEmail,
+        password: wPass,
+        pin: wPin,
+        profile: wProfile,
+        notes: wNote,
+        sentAt: window._fsServerTimestamp()
+      },
+      status: 'Diproses',
+      updatedAt: window._fsServerTimestamp()
+    });
+    
+    closeModal();
+    
+    const customerPhone = k.whatsapp || k.phone || k.nomorWhatsapp || k.nomorWA || k.customerPhone;
+
+    if (!customerPhone) {
+      if (!waWindow.closed) waWindow.close();
+      showToast('Nomor WhatsApp customer tidak ditemukan.', 'error');
+      return;
+    }
+
+    let formattedPhone = customerPhone.replace(/\\D/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '62' + formattedPhone.substring(1);
+    } else if (!formattedPhone.startsWith('62')) {
+      formattedPhone = '62' + formattedPhone;
+    }
+
+    const displayProduct = k.serviceName || k.packageName || k.productName || k.product || '-';
+
+    const textMsg = `Halo ${k.nama || k.customerName || 'Kak'} 👋
+
+Klaim garansi untuk layanan *${displayProduct}* telah berhasil diproses.
+
+Berikut akun pengganti Anda:
+
+📧 Email: ${wEmail}
+🔑 Password: ${wPass}
+${wPin ? `🔐 PIN: ${wPin}\n` : ''}${wProfile ? `👤 Profil: ${wProfile}\n` : ''}${wNote ? `\n${wNote}\n` : ''}
+Terima kasih telah menggunakan layanan ${window.currentStoreName || 'Subflow'}.`;
+    
+    const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(textMsg)}`;
+    waWindow.location.replace(waUrl);
+
+    showToast('Akun garansi berhasil dikirim!');
+    
+  } catch (err) {
+    if (waWindow && !waWindow.closed) {
+      waWindow.close();
+    }
+    showToast('Gagal mengirim akun garansi', 'error');
+    console.error(err);
+  } finally {
+    const btn = document.getElementById('modalSaveBtn');
+    if (btn) { btn.innerHTML = `Simpan & Kirim`; btn.disabled = false; }
+  }
+};
+
 // ─── STARTUP ───
 (function init() {
   const savedTheme = DB.get('appTheme') || 'system';
@@ -1792,4 +2175,7 @@ function loadPreferences() {
     const el = document.getElementById(id);
     if (el) el.value = curMonth;
   });
+
+  // Re-render claims if they exist
+  renderKlaimGaransi();
 })();
