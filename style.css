@@ -1613,3 +1613,43 @@ body {
 .ac-item:hover, .ac-item.active { background: var(--surface2); color: var(--accent); }
 .ac-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
 .ac-new { color: var(--success); font-weight: 600; }
+
+/* ─── OVERRIDE LAYOUT LAINNYA ─── */
+/* Force top alignment and normal block flow for Lainnya subpages */
+#page-lainnya-bantuan.active,
+#page-lainnya-preferensi.active,
+#page-lainnya-keamanan.active,
+#page-lainnya-notifikasi.active,
+#page-lainnya-tentang.active,
+#page-lainnya-akun.active,
+#page-lainnya-statistik.active {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  min-height: 0 !important;
+  height: max-content !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+#page-lainnya-bantuan .lainnya-card,
+#page-lainnya-preferensi .lainnya-card,
+#page-lainnya-keamanan .lainnya-card,
+#page-lainnya-notifikasi .lainnya-card,
+#page-lainnya-tentang .lainnya-card,
+#page-lainnya-akun .lainnya-card,
+#page-lainnya-statistik .lainnya-card {
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+  flex-grow: 0 !important;
+  align-self: auto !important;
+}
+
+#page-lainnya-bantuan .copy-note,
+#page-lainnya-preferensi .copy-note,
+#page-lainnya-keamanan .copy-note,
+#page-lainnya-notifikasi .copy-note,
+#page-lainnya-tentang .copy-note {
+  margin-top: 16px !important;
+}
