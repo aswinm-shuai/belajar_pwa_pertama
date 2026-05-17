@@ -585,7 +585,7 @@
 
         // Listen to Live Orders (Dari Landing Page)
         let initialLiveOrdersLoad = true;
-        const liveOrdersQuery = query(collection(db, 'live_orders'), where('storeUid', '==', user.uid), orderBy('timestamp', 'asc'));
+        const liveOrdersQuery = query(collection(db, 'live_orders'), where('storeUid', '==', user.uid));
         window._unsubLiveOrders = onSnapshot(liveOrdersQuery, (snap) => {
           snap.docChanges().forEach((change) => {
             if (change.type === 'added' && !initialLiveOrdersLoad) {
