@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/logo subflow 192x192.png" type="image/png">
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -215,6 +216,111 @@
       openModal('Ubah Nomor WhatsApp', html, 'saveStoreWhatsApp()');
     };
 
+    window.openEditStoreLogo = function () {
+      const html = `
+        <div class="field-group">
+          <label>Upload Logo Store</label>
+          <input type="file" class="field-input" id="editStoreLogoFile" accept="image/jpeg, image/png, image/webp" style="padding: 10px;">
+          <p style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Format: JPG, PNG, WEBP (Maks. 5 MB)</p>
+        </div>
+      `;
+      openModal('Ubah Logo Store', html, 'saveStoreLogo()');
+    };
+
+    window.saveStoreLogo = async function () {
+      const fileInput = document.getElementById('editStoreLogoFile');
+      const file = fileInput.files[0];
+      if (!file) return showToast('Pilih gambar terlebih dahulu!', 'error');
+      if (file.size > 5 * 1024 * 1024) return showToast('Ukuran maksimal 5 MB!', 'error');
+
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const btn = document.querySelector('.modal-actions .btn-primary');
+      if (btn) { btn.textContent = "Mengupload..."; btn.disabled = true; }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'subflow_warranty');
+
+        const res = await fetch('https://api.cloudinary.com/v1_1/djz7gnki1/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Gagal upload gambar');
+        const data = await res.json();
+        
+        await updateDoc(doc(db, 'users', user.uid), { logoUrl: data.secure_url });
+        showToast('Logo Store berhasil diperbarui!');
+        closeModal();
+      } catch (e) {
+        showToast(e.message || 'Gagal upload', 'error');
+      } finally {
+        if (btn) { btn.textContent = "Simpan"; btn.disabled = false; }
+      }
+    };
+
+    window.openEditQRIS = function () {
+      const html = `
+        <div class="field-group">
+          <label>Upload QRIS Pembayaran</label>
+          <input type="file" class="field-input" id="editQRISFile" accept="image/jpeg, image/png, image/webp" style="padding: 10px;" onchange="previewQRIS(this)">
+          <p style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Format: JPG, PNG, WEBP (Maks. 5 MB)</p>
+          <div style="margin-top:12px; text-align:center;">
+             <img id="qrisPreview" style="max-width:100%; max-height:200px; display:none; border-radius:8px; margin:0 auto;">
+          </div>
+        </div>
+      `;
+      openModal('Ubah QRIS Pembayaran', html, 'saveQRIS()');
+    };
+
+    window.previewQRIS = function (input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('qrisPreview');
+          img.src = e.target.result;
+          img.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.saveQRIS = async function () {
+      const fileInput = document.getElementById('editQRISFile');
+      const file = fileInput.files[0];
+      if (!file) return showToast('Pilih gambar terlebih dahulu!', 'error');
+      if (file.size > 5 * 1024 * 1024) return showToast('Ukuran maksimal 5 MB!', 'error');
+
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const btn = document.querySelector('.modal-actions .btn-primary');
+      if (btn) { btn.textContent = "Mengupload..."; btn.disabled = true; }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'subflow_warranty');
+
+        const res = await fetch('https://api.cloudinary.com/v1_1/djz7gnki1/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Gagal upload QRIS');
+        const data = await res.json();
+        
+        await updateDoc(doc(db, 'users', user.uid), { qrisUrl: data.secure_url });
+        showToast('QRIS berhasil diperbarui!');
+        closeModal();
+      } catch (e) {
+        showToast(e.message || 'Gagal upload', 'error');
+      } finally {
+        if (btn) { btn.textContent = "Simpan"; btn.disabled = false; }
+      }
+    };
+
     window.copyUid = function () {
       const user = auth.currentUser;
       if (user && user.uid) {
@@ -294,10 +400,16 @@
       }
     };
 
-    window.applyProfileAvatar = function (name) {
+    window.applyProfileAvatar = function (name, logoUrl) {
       const initial = name ? name.charAt(0).toUpperCase() : 'A';
       const avatar = document.getElementById('lainnyaAvatar');
-      if (avatar) avatar.textContent = initial;
+      if (avatar) {
+        if (logoUrl) {
+          avatar.innerHTML = `<img src="${logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;">`;
+        } else {
+          avatar.textContent = initial;
+        }
+      }
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -316,12 +428,16 @@
           let storeName = 'Nama Store';
           let ownerName = 'Nama Pemilik';
           let storeWa = 'Nomor WhatsApp Store belum diatur';
+          let logoUrl = null;
+          let qrisUrl = null;
 
           if (snap.exists()) {
             const d = snap.data();
             storeName = d.storeName || d.name || storeName;
             ownerName = d.ownerName || ownerName;
             storeWa = d.whatsappStore || d.storeWhatsapp || storeWa; // Fallback to storeWhatsapp for migration
+            logoUrl = d.logoUrl || d.storeLogo || null;
+            qrisUrl = d.qrisUrl || null;
 
             // Sync settings
             if (d.settings) {
@@ -360,6 +476,9 @@
           const lWaTop = document.getElementById('lainnyaStoreWaTop'); if (lWaTop) lWaTop.textContent = storeWa;
           const lemail = document.getElementById('lainnyaEmail'); if (lemail) lemail.textContent = user.email;
           const ljoin = document.getElementById('lainnyaJoinDate'); if (ljoin) ljoin.textContent = joinDate;
+          
+          const lLogoStatus = document.getElementById('lainnyaStoreLogoStatus'); if (lLogoStatus) lLogoStatus.textContent = logoUrl ? 'Telah diatur' : 'Belum diatur';
+          const lQrisStatus = document.getElementById('lainnyaQRISStatus'); if (lQrisStatus) lQrisStatus.textContent = qrisUrl ? 'Telah diatur' : 'Belum diatur';
 
           const lUid = document.getElementById('lainnyaUid'); if (lUid) lUid.textContent = user.uid;
           const lLast = document.getElementById('lainnyaLastLogin');
@@ -383,7 +502,7 @@
           const elAutoOpenWa = document.getElementById('toggleAutoOpenWa');
           if (elAutoOpenWa) { elAutoOpenWa.checked = window.currentAutoOpenWa; }
 
-          applyProfileAvatar(storeName);
+          applyProfileAvatar(storeName, logoUrl);
         });
 
         // Listen to Customers
@@ -689,6 +808,9 @@
           <span class="topbar-title" id="topbarTitle">Dashboard</span>
         </div>
         <div class="topbar-right" id="topbarRight">
+          <button onclick="forceRefreshData(this)" class="btn-icon-top" title="Refresh Data" id="btnRefreshData">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
           <button onclick="toggleTheme()" class="btn-icon-top" title="Toggle theme">
             <i class="bi bi-moon" id="darkIconMobile"></i>
           </button>
@@ -1029,6 +1151,22 @@
                 <div class="setting-text">
                   <div class="setting-title">Nomor WhatsApp Store</div>
                   <div class="setting-sub" id="lainnyaStoreWa">Nomor WhatsApp Store belum diatur</div>
+                </div>
+                <i class="bi bi-pencil-fill setting-chevron" style="font-size: 14px; opacity: 0.5;"></i>
+              </div>
+              <div class="setting-item" onclick="openEditStoreLogo()">
+                <div class="setting-icon"><i class="bi bi-image"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">Logo Store</div>
+                  <div class="setting-sub" id="lainnyaStoreLogoStatus">Belum diatur</div>
+                </div>
+                <i class="bi bi-pencil-fill setting-chevron" style="font-size: 14px; opacity: 0.5;"></i>
+              </div>
+              <div class="setting-item" onclick="openEditQRIS()">
+                <div class="setting-icon"><i class="bi bi-qr-code"></i></div>
+                <div class="setting-text">
+                  <div class="setting-title">QRIS Pembayaran</div>
+                  <div class="setting-sub" id="lainnyaQRISStatus">Belum diatur</div>
                 </div>
                 <i class="bi bi-pencil-fill setting-chevron" style="font-size: 14px; opacity: 0.5;"></i>
               </div>
