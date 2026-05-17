@@ -628,7 +628,11 @@ function openModalTransaksi(renewData = null) {
       ${fieldGroup('Email/Username Akun', `<input type="text" class="field-input" id="tAccountEmail" placeholder="opsional">`)}
       ${fieldGroup('Password Akun', `<input type="text" class="field-input" id="tAccountPassword" placeholder="opsional">`)}
     </div>
-    ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']]))}
+    <div class="row-2col">
+      ${fieldGroup('Profil', `<input type="text" class="field-input" id="tAccountProfil" placeholder="opsional">`)}
+      ${fieldGroup('PIN', `<input type="text" class="field-input" id="tAccountPin" placeholder="opsional">`)}
+    </div>
+    ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Sukses'], ['pending', 'Pending']]))}
     ${catatanField('')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
@@ -688,14 +692,18 @@ function editTransaksi(id) {
       ${fieldGroup('Email/Username Akun', `<input type="text" class="field-input" id="tAccountEmail" value="${t.accountEmail || ''}" placeholder="opsional">`)}
       ${fieldGroup('Password Akun', `<input type="text" class="field-input" id="tAccountPassword" value="${t.accountPassword || ''}" placeholder="opsional">`)}
     </div>
-    ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Lunas'], ['pending', 'Pending']], t.statusBayar))}
+    <div class="row-2col">
+      ${fieldGroup('Profil', `<input type="text" class="field-input" id="tAccountProfil" value="${t.accountProfil || ''}" placeholder="opsional">`)}
+      ${fieldGroup('PIN', `<input type="text" class="field-input" id="tAccountPin" value="${t.accountPin || ''}" placeholder="opsional">`)}
+    </div>
+    ${fieldGroup('Status Bayar', selectHtml('tStatusBayar', [['lunas', 'Sukses'], ['pending', 'Pending']], t.statusBayar))}
     ${catatanField(t.catatan || '')}
     <div style="border-top:1px solid var(--border);margin:12px 0 4px;padding-top:12px;">
       <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;"><i class="bi bi-receipt" style="margin-right:4px;"></i>Info Invoice</div>
       ${customerNotesField(t.customerNotes || '')}
     </div>
     <div style="margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="tKirimWa" style="width:16px;height:16px;accent-color:var(--accent);">
+      <input type="checkbox" id="tKirimWa" style="width:16px;height:16px;accent-color:var(--accent);" checked>
       <label for="tKirimWa" style="font-size:13px;font-weight:600;color:var(--text);cursor:pointer;margin:0;">Kirim ulang ke WhatsApp</label>
     </div>`;
 
@@ -728,8 +736,13 @@ function saveTransaksi() {
 
   const accountEmailEl = document.getElementById('tAccountEmail');
   const accountPasswordEl = document.getElementById('tAccountPassword');
+  const accountProfilEl = document.getElementById('tAccountProfil');
+  const accountPinEl = document.getElementById('tAccountPin');
+
   const accountEmail = accountEmailEl ? accountEmailEl.value.trim() : '';
   const accountPassword = accountPasswordEl ? accountPasswordEl.value.trim() : '';
+  const accountProfil = accountProfilEl ? accountProfilEl.value.trim() : '';
+  const accountPin = accountPinEl ? accountPinEl.value.trim() : '';
 
   // ─── Keterangan Invoice ───
   const customerNotesEl = document.getElementById('tCustomerNotes');
@@ -775,7 +788,7 @@ function saveTransaksi() {
     invoice_number: invoiceNum,
     harga: paket.harga, hpp: paket.hpp, profit: paket.harga - paket.hpp,
     mulai, expired, statusLangganan, statusBayar, suppId, catatan,
-    customerNotes, accountEmail, accountPassword
+    customerNotes, accountEmail, accountPassword, accountProfil, accountPin
   };
 
   if (!trxData) return; // Safe check
@@ -812,10 +825,12 @@ function saveTransaksi() {
 
       let text = `🧾 *NOTA PEMBELIAN *${finalStoreName}*\n\nHalo *${cName}*,\nTerima kasih telah berbelanja di *${finalStoreName}*.\n\n━━━━━━━━━━━━━━━━━━\n📦 *Detail Pesanan*\n• Produk: ${nmPaket}\n• Harga: Rp ${fmtRupiah(trxData.harga)}\n• Durasi: ${drs}\n• Tanggal: ${tglIndo}\n━━━━━━━━━━━━━━━━━━\n`;
 
-      if (accountEmail || accountPassword) {
+      if (accountEmail || accountPassword || accountProfil || accountPin) {
         text += `\n🔐 *Detail Akun*\n`;
-        if (accountEmail) text += `• Email/Username: ${accountEmail}\n`;
-        if (accountPassword) text += `• Password: ${accountPassword}\n`;
+        if (accountEmail) text += `Email: ${accountEmail}\n`;
+        if (accountPassword) text += `Password: ${accountPassword}\n`;
+        if (accountProfil) text += `Profil: ${accountProfil}\n`;
+        if (accountPin) text += `PIN: ${accountPin}\n`;
         text += `━━━━━━━━━━━━━━━━━━\n`;
       }
 
@@ -1398,7 +1413,61 @@ function openModalPaket(id = null) {
 
 function editPaket(id) { openModalPaket(id); }
 
+async function compressImage(file, maxSizeMB = 5, maxWidth = 1200) {
+  return new Promise((resolve, reject) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      return reject(new Error('Format file harus JPG, PNG, atau WEBP.'));
+    }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      return reject(new Error(`Ukuran file maksimal ${maxSizeMB}MB.`));
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxWidth;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const targetType = file.type === 'image/png' ? 'image/png' : 'image/webp';
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('Gagal mengompresi gambar.'));
+          const ext = targetType === 'image/png' ? 'png' : 'webp';
+          const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + "." + ext, {
+            type: targetType,
+          });
+          resolve(newFile);
+        }, targetType, 0.85); 
+      };
+      img.onerror = () => reject(new Error('File bukan gambar yang valid.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 async function savePaket(id) {
+  const btnSave = document.querySelector('.modal-footer .btn-save');
+  if (btnSave && btnSave.disabled) return;
+
   const nama = document.getElementById('pNama').value.trim();
   const harga = parseFloat(document.getElementById('pHarga').value);
   const hpp = parseFloat(document.getElementById('pHpp').value);
@@ -1409,35 +1478,75 @@ async function savePaket(id) {
 
   if (!nama || !harga || !hpp) { showToast('Nama, Harga, HPP wajib diisi!', 'error'); return; }
 
-  const btnText = document.querySelector('.modal-footer .btn-accent').innerHTML;
-  if (logoFile) {
-    try {
-      showToast('Mengunggah gambar...', 'info');
-      document.querySelector('.modal-footer .btn-accent').innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
-      document.querySelector('.modal-footer .btn-accent').disabled = true;
-      const storageRef = window._fsRef(window._storage, `products/${Date.now()}_${logoFile.name}`);
-      const uploadTask = await window._fsUpload(storageRef, logoFile);
-      imageUrl = await window._fsGetUrl(uploadTask.ref);
-    } catch (e) {
-      document.querySelector('.modal-footer .btn-accent').innerHTML = btnText;
-      document.querySelector('.modal-footer .btn-accent').disabled = false;
-      showToast('Gagal mengunggah gambar: ' + e.message, 'error');
-      return;
-    }
+  let btnText = 'Simpan';
+  if (btnSave) {
+    btnText = btnSave.innerHTML;
+    btnSave.innerHTML = '<i class="bi bi-hourglass-split"></i> Menyimpan...';
+    btnSave.disabled = true;
   }
 
-  const pks = DB.pakets();
-  if (id) {
-    const idx = pks.findIndex(p => p.id === id);
-    if (idx >= 0) pks[idx] = { ...pks[idx], nama, harga, hpp, durasi, status, imageUrl };
-  } else {
-    const newId = pks.length ? Math.max(...pks.map(p => p.id)) + 1 : 1;
-    pks.push({ id: newId, nama, harga, hpp, durasi, status, imageUrl });
+  try {
+    if (logoFile) {
+      console.log('[savePaket] Mulai optimasi gambar...');
+      showToast('Mengoptimasi gambar...', 'info');
+      const optimizedFile = await compressImage(logoFile, 5, 1200);
+
+      console.log('[savePaket] Gambar teroptimasi, mulai upload ke Cloudinary...');
+      showToast('Mengunggah gambar...', 'info');
+      
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
+      formData.append('upload_preset', 'upload_paket');
+
+      const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/djz7gnki1/image/upload';
+
+      const uploadPromise = new Promise(async (resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Upload timeout setelah 30 detik. Pastikan koneksi stabil.')), 30000);
+        try {
+          const response = await fetch(cloudinaryUrl, {
+            method: 'POST',
+            body: formData
+          });
+          clearTimeout(timer);
+          if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            throw new Error((errBody.error && errBody.error.message) || 'Gagal upload ke Cloudinary');
+          }
+          const data = await response.json();
+          resolve(data.secure_url);
+        } catch (error) {
+          clearTimeout(timer);
+          reject(error);
+        }
+      });
+
+      imageUrl = await uploadPromise;
+      imageUrl = imageUrl + (imageUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+      console.log('[savePaket] Upload berhasil:', imageUrl);
+    }
+
+    const pks = DB.pakets();
+    if (id) {
+      const idx = pks.findIndex(p => p.id === id);
+      if (idx >= 0) pks[idx] = { ...pks[idx], nama, harga, hpp, durasi, status, imageUrl };
+    } else {
+      const newId = pks.length ? Math.max(...pks.map(p => p.id)) + 1 : 1;
+      pks.push({ id: newId, nama, harga, hpp, durasi, status, imageUrl });
+    }
+    
+    DB.savePakets(pks);
+    closeModal();
+    showToast('Berhasil memperbarui paket');
+    renderPaket();
+  } catch (e) {
+    console.error('[savePaket] Terjadi Kesalahan:', e);
+    showToast(e.message || 'Gagal menyimpan paket', 'error');
+  } finally {
+    if (btnSave && document.body.contains(btnSave)) {
+      btnSave.innerHTML = btnText;
+      btnSave.disabled = false;
+    }
   }
-  DB.savePakets(pks);
-  closeModal();
-  showToast('Paket disimpan!');
-  renderPaket();
 }
 
 function togglePaketStatus(id) {
@@ -2161,6 +2270,94 @@ Terima kasih telah menggunakan layanan ${window.currentStoreName || 'Subflow'}.`
     const btn = document.getElementById('modalSaveBtn');
     if (btn) { btn.innerHTML = `Simpan & Kirim`; btn.disabled = false; }
   }
+};
+// ─── SYNC & REFRESH ───
+window.forceRefreshData = async function(btn) {
+  if (!window._auth || !window._auth.currentUser) return;
+  const uid = window._auth.currentUser.uid;
+  
+  const icon = btn.querySelector('i');
+  if (icon) {
+    icon.style.transition = 'transform 0.5s ease';
+    icon.style.transform = 'rotate(360deg)';
+  }
+  btn.disabled = true;
+  
+  try {
+    showToast('Menyinkronkan data terbaru...', 'info');
+    await DB.setUID(uid);
+    renderAll();
+    showToast('Data berhasil di-refresh', 'success');
+  } catch(e) {
+    showToast('Gagal memuat ulang data', 'error');
+  } finally {
+    setTimeout(() => {
+      if (icon) {
+        icon.style.transition = 'none';
+        icon.style.transform = 'rotate(0deg)';
+      }
+      btn.disabled = false;
+    }, 500);
+  }
+};
+
+window.syncOrphanedInvoices = async function() {
+  const trxs = DB.transaksis();
+  const custs = DB.customers();
+  let updatedCusts = false;
+  let updatedTrxs = false;
+  
+  const orphaned = trxs.filter(t => !t.custId && t.wa);
+  if (orphaned.length === 0) {
+    console.log('Tidak ada invoice yatim (tanpa customer_id) yang ditemukan.');
+    showToast('Semua invoice sudah memiliki ID Customer.', 'info');
+    return;
+  }
+  
+  console.log(`Ditemukan ${orphaned.length} invoice yatim. Memulai proses sinkronisasi...`);
+  
+  for (let t of orphaned) {
+    let waRaw = String(t.wa).replace(/\D/g, '');
+    if (waRaw.startsWith('08')) waRaw = '62' + waRaw.substring(1);
+    else if (waRaw.startsWith('8')) waRaw = '62' + waRaw;
+    
+    let existingCust = custs.find(c => {
+      if (!c.wa) return false;
+      let existingWa = String(c.wa).replace(/\D/g, '');
+      if (existingWa.startsWith('08')) existingWa = '62' + existingWa.substring(1);
+      else if (existingWa.startsWith('8')) existingWa = '62' + existingWa;
+      return existingWa === waRaw;
+    });
+    
+    let custId = null;
+    if (existingCust) {
+      custId = existingCust.id;
+    } else {
+      custId = custs.length ? Math.max(...custs.map(c => c.id)) + 1 : 1;
+      const nm = t.namaPembeli || 'Tanpa Nama (Auto-Sync)';
+      custs.push({
+        id: custId,
+        nama: nm,
+        wa: waRaw,
+        created_at: new Date().toISOString(),
+        tgl_order: t.tgl || new Date().toISOString().substring(0, 10),
+        status: 'aktif',
+        catatan: 'Customer hasil auto-sync'
+      });
+      updatedCusts = true;
+      console.log(`[Sync] Dibuat customer baru ID: ${custId} untuk WA: ${waRaw}`);
+    }
+    
+    t.custId = custId;
+    updatedTrxs = true;
+    console.log(`[Sync] Invoice ${t.invoice_number || t.id} dihubungkan ke Customer ID: ${custId}`);
+  }
+  
+  if (updatedCusts) DB.saveCustomers(custs);
+  if (updatedTrxs) DB.saveTransaksis(trxs);
+  
+  renderAll();
+  showToast(`Selesai! ${orphaned.length} invoice berhasil disinkronisasi.`, 'success');
 };
 
 // ─── STARTUP ───
